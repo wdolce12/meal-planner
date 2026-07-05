@@ -347,16 +347,38 @@ const IDEA_POOL = [
 const LS_KEY='dolceDinners.v1';
 let state=null;
 function normalizeTypes(){
+  // Deep-normalize: Firebase strips empty arrays/objects, so restore every
+  // collection field that may come back undefined from the cloud or old saves.
+  if(!state||typeof state!=='object') state={};
+  state.meals=Array.isArray(state.meals)?state.meals:[];
+  state.grocery=Array.isArray(state.grocery)?state.grocery:[];
+  state.notes=Array.isArray(state.notes)?state.notes:[];
+  state.weeks=(state.weeks&&typeof state.weeks==='object')?state.weeks:{};
+  Object.keys(state.weeks).forEach(k=>{
+    if(!state.weeks[k]||typeof state.weeks[k]!=='object') state.weeks[k]={meals:[]};
+    if(!Array.isArray(state.weeks[k].meals)) state.weeks[k].meals=[];
+  });
   state.meals.forEach(m=>{
+    if(!Array.isArray(m.links)) m.links=[];
+    if(!Array.isArray(m.tags)) m.tags=[];
+    if(!Array.isArray(m.groceryItems)) m.groceryItems=[];
+    if(typeof m.recipe!=='string') m.recipe='';
+    if(typeof m.notes!=='string') m.notes='';
+    if(!m.rating) m.rating=0;
+    if(!m.timesPlanned) m.timesPlanned=0;
     if(!m.mealType){
       if(m.id==='s01'||m.id==='s02') m.mealType='Side';
       else if(m.id==='s03') m.mealType='Lunch';
-      else if((m.tags||[]).includes('side/sauce')) m.mealType='Side';
+      else if(m.tags.includes('side/sauce')) m.mealType='Side';
       else m.mealType='Dinner';
     }
   });
   state.grocery.forEach(g=>{ if(!g.qty) g.qty=1; });
-  if(!state.notes) state.notes=[];
+  state.notes.forEach(n=>{
+    if(!n.reactions||typeof n.reactions!=='object') n.reactions={};
+    Object.keys(n.reactions).forEach(e=>{ if(!Array.isArray(n.reactions[e])) delete n.reactions[e]; });
+    if(!Array.isArray(n.replies)) n.replies=[];
+  });
 }
 function load(){
   try{ state=JSON.parse(localStorage.getItem(LS_KEY)); }catch(e){ state=null; }
@@ -808,12 +830,16 @@ function initSync(){
         if(v.ts>lastRemoteTs){
           lastRemoteTs=v.ts;
           applyingRemote=true;
-          state=v.state; normalizeTypes();
-          localStorage.setItem(LS_KEY, JSON.stringify(state));
+          try{
+            state=v.state; normalizeTypes();
+            localStorage.setItem(LS_KEY, JSON.stringify(state));
+          }catch(e){ console.warn('remote apply failed',e); }
           applyingRemote=false;
-          renderMeals(); renderWeek(); renderGrocery();
-          if(document.getElementById('view-ideas').classList.contains('active'))renderIdeas();
-          if(document.getElementById('view-notes').classList.contains('active'))renderNotes();
+          try{
+            renderMeals(); renderWeek(); renderGrocery();
+            if(document.getElementById('view-ideas').classList.contains('active'))renderIdeas();
+            if(document.getElementById('view-notes').classList.contains('active'))renderNotes();
+          }catch(e){ console.warn('render after sync failed',e); }
         }
       },err=>{ setSyncDot('error'); console.warn('sync read error',err); });
       fdb.ref('.info/connected').on('value',s=>{ setSyncDot(s.val()?'on':'connecting'); });
