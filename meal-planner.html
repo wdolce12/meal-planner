@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Dolce Dinners 🍽️</title>
+<style>
+:root{
+  --bg:#faf7f2; --card:#ffffff; --ink:#2d2a26; --muted:#8a837a;
+  --accent:#e07a3f; --accent-soft:#fdeee3; --green:#5a8a5e; --green-soft:#e8f1e9;
+  --red:#c05555; --gold:#e8b64c; --line:#eee7dd; --publix:#3f7a4f; --aldi:#2a6fb0; --bulk:#8a5fb0;
+  --radius:14px; --shadow:0 1px 4px rgba(60,50,40,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:90px}
+header{padding:18px 16px 8px;text-align:center}
+header h1{font-size:22px;letter-spacing:-.3px}
+header .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+.tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+.tabs button{flex:1;padding:12px 4px 10px;border:none;background:none;font-size:11px;color:var(--muted);cursor:pointer;font-weight:600}
+.tabs button .ico{display:block;font-size:20px;margin-bottom:2px}
+.tabs button.active{color:var(--accent)}
+main{max-width:640px;margin:0 auto;padding:8px 14px}
+.view{display:none}.view.active{display:block}
+.toolbar{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}
+.toolbar input[type=search]{flex:1;min-width:140px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;background:var(--card)}
+select{padding:9px 10px;border:1px solid var(--line);border-radius:10px;font-size:13px;background:var(--card);color:var(--ink)}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer;background:var(--accent);color:#fff}
+.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+.btn.green{background:var(--green)}
+.btn.sm{padding:6px 10px;font-size:12.5px;border-radius:8px}
+.btn.gray{background:#efe9e0;color:#6b6459}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:10px}
+.meal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;cursor:pointer}
+.meal-title{font-size:15.5px;font-weight:650;line-height:1.3}
+.meal-meta{color:var(--muted);font-size:12px;margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tag{background:var(--accent-soft);color:var(--accent);padding:1px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.tag.side{background:var(--green-soft);color:var(--green)}
+.stars{white-space:nowrap;font-size:16px;letter-spacing:1px;cursor:pointer;user-select:none}
+.stars .on{color:var(--gold)} .stars .off{color:#ded7cc}
+.badge-again{font-size:11px;font-weight:700;padding:1px 8px;border-radius:20px}
+.badge-again.yes{background:var(--green-soft);color:var(--green)}
+.badge-again.no{background:#f7e3e3;color:var(--red)}
+.meal-body{display:none;margin-top:10px;border-top:1px dashed var(--line);padding-top:10px}
+.meal-body.open{display:block}
+.linkrow a{display:inline-block;margin:2px 6px 2px 0;font-size:13px;color:var(--aldi);text-decoration:none;background:#eaf2fa;padding:3px 10px;border-radius:8px}
+.recipe{white-space:pre-wrap;font-size:13.5px;line-height:1.45;color:#4a453e;background:#fbf8f3;border-radius:10px;padding:10px;margin-top:8px;max-height:340px;overflow:auto}
+.meal-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.notes{font-size:13px;color:var(--muted);font-style:italic;margin-top:6px}
+/* week */
+.week-nav{display:flex;align-items:center;justify-content:space-between;margin:8px 0}
+.week-nav h2{font-size:16px}
+.plan-item{display:flex;align-items:center;gap:10px}
+.plan-item .nm{flex:1;font-weight:600;font-size:14.5px}
+.plan-item .nm .rt{font-size:12px;color:var(--gold)}
+.cooked{opacity:.55;text-decoration:line-through}
+.empty{color:var(--muted);text-align:center;padding:30px 10px;font-size:14px}
+/* grocery */
+.gsec{margin-bottom:14px}
+.gsec h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 6px 4px;display:flex;justify-content:space-between;align-items:center}
+.gitem{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:9px 12px;margin-bottom:5px}
+.gitem input[type=checkbox]{width:20px;height:20px;accent-color:var(--green)}
+.gitem .gname{flex:1;font-size:14.5px}
+.gitem.done .gname{text-decoration:line-through;color:var(--muted)}
+.gitem .src{font-size:11px;color:var(--muted)}
+.gitem .del{border:none;background:none;color:#c9c1b5;font-size:16px;cursor:pointer;padding:2px 6px}
+.addrow{display:flex;gap:6px;margin:10px 0}
+.addrow input{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px}
+/* modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(40,30,20,.45);z-index:100;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:640px;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px 30px}
+.sheet h2{font-size:17px;margin-bottom:12px}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.field input,.field textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;background:var(--card);font-family:inherit}
+.field textarea{min-height:70px;resize:vertical}
+.sheet .row{display:flex;gap:8px}
+.sheet .row>*{flex:1}
+.picker-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--card);border-radius:10px;margin-bottom:6px;box-shadow:var(--shadow)}
+.picker-item .pi-n{font-size:14.5px;font-weight:600}
+.picker-item .pi-m{font-size:11.5px;color:var(--muted)}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 18px;border-radius:22px;font-size:13.5px;z-index:200;opacity:0;transition:opacity .25s;pointer-events:none;max-width:86vw;text-align:center}
+.toast.show{opacity:.95}
+.topbtns{display:flex;gap:8px;justify-content:center;margin-top:6px;flex-wrap:wrap}
+.hint{font-size:12px;color:var(--muted);margin:8px 4px;line-height:1.45}
+.secpill{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:700}
+.sp-Produce{background:#e8f1e9;color:#5a8a5e}.sp-Grocery{background:#eaf2fa;color:#2a6fb0}
+.sp-Publix{background:#e6f0e8;color:#3f7a4f}.sp-BJs{background:#f0e9f7;color:#8a5fb0}.sp-Other{background:#f4efe7;color:#8a837a}
+.seg{display:flex;background:#efe9e0;border-radius:11px;padding:3px;margin:10px 0 4px;gap:2px}
+.seg button{flex:1;border:none;background:none;padding:7px 2px;font-size:12px;font-weight:700;color:#8a837a;border-radius:9px;cursor:pointer}
+.seg button.on{background:var(--card);color:var(--accent);box-shadow:var(--shadow)}
+.sug-why{font-size:12px;color:var(--green);font-weight:600;margin-top:3px}
+.sug-desc{font-size:13px;color:#5c564d;margin-top:4px;line-height:1.4}
+.qty{font-size:11.5px;font-weight:800;background:var(--accent-soft);color:var(--accent);border-radius:14px;padding:1px 8px;cursor:pointer;user-select:none}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 10px}
+.chips button{border:1px dashed #d8cfc2;background:none;border-radius:16px;padding:4px 11px;font-size:12.5px;color:#6b6459;cursor:pointer;font-weight:600}
+.chips button:active{background:var(--accent-soft)}
+h2.blk{font-size:15px;margin:16px 2px 8px;display:flex;justify-content:space-between;align-items:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>🍽️ Dolce Dinners</h1>
+  <div class="sub" id="subline">Your family meal library &amp; grocery planner</div>
+  <div class="topbtns">
+    <button class="btn sm gray" id="syncBtn" onclick="openSyncSheet()">⚪️ Sync</button>
+    <button class="btn sm gray" onclick="exportData()">⬆︎ Export</button>
+    <button class="btn sm gray" onclick="document.getElementById('importFile').click()">⬇︎ Import</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+</header>
+<main>
+  <!-- MEALS -->
+  <section id="view-meals" class="view active">
+    <div class="seg" id="typeSeg">
+      <button class="on" data-type="" onclick="setTypeFilter(this)">All</button>
+      <button data-type="Breakfast" onclick="setTypeFilter(this)">🍳 Breakfast</button>
+      <button data-type="Lunch" onclick="setTypeFilter(this)">🥪 Lunch</button>
+      <button data-type="Dinner" onclick="setTypeFilter(this)">🍽️ Dinner</button>
+      <button data-type="Side" onclick="setTypeFilter(this)">🥗 Sides</button>
+    </div>
+    <div class="toolbar">
+      <input type="search" id="q" placeholder="Search meals…" oninput="renderMeals()">
+      <select id="sortBy" onchange="renderMeals()">
+        <option value="recent">Recently planned</option>
+        <option value="rating">Top rated</option>
+        <option value="times">Most made</option>
+        <option value="az">A–Z</option>
+      </select>
+      <select id="filterTag" onchange="renderMeals()"><option value="">All tags</option></select>
+    </div>
+    <div id="mealList"></div>
+    <button class="btn" style="width:100%;margin-top:6px" onclick="openMealForm()">＋ Add a meal</button>
+    <p class="hint">💡 Tap a meal to see links &amp; recipe. Tap the stars to rate it — 4★+ shows “make again”, 2★ or less shows “skip”. Paste recipe text from Instagram/TikTok captions into the recipe box (or ask Claude to fetch it for you).</p>
+  </section>
+
+  <!-- WEEK -->
+  <section id="view-week" class="view">
+    <div class="week-nav">
+      <button class="btn sm ghost" onclick="shiftWeek(-1)">‹ Prev</button>
+      <h2 id="weekLabel"></h2>
+      <button class="btn sm ghost" onclick="shiftWeek(1)">Next ›</button>
+    </div>
+    <div id="planList"></div>
+    <button class="btn" style="width:100%" onclick="openPicker()">＋ Add meal to this week</button>
+    <p class="hint">✅ Tap the circle when you've cooked a meal — it logs it to the meal's history and asks for a rating. 🛒 sends the meal's grocery items to the list.</p>
+  </section>
+
+  <!-- SUGGESTIONS -->
+  <section id="view-ideas" class="view">
+    <h2 class="blk">💡 Tonight's picks from your library <button class="btn sm ghost" onclick="renderIdeas()">🔀 Shuffle</button></h2>
+    <div id="libPicks"></div>
+    <h2 class="blk">✨ New ideas that match your vibe</h2>
+    <div id="newIdeas"></div>
+    <p class="hint">Library picks favor meals you rated highly but haven't made in a while. New ideas are based on what you two actually cook — bowls, Blackstone nights, air-fryer chicken, and island flavors. Ask Claude to find &amp; fetch a full recipe for any of them.</p>
+  </section>
+
+  <!-- GROCERY -->
+  <section id="view-grocery" class="view">
+    <div class="addrow">
+      <input type="text" id="gInput" placeholder="Add item…" onkeydown="if(event.key==='Enter')addGrocery()">
+      <select id="gSection">
+        <option>Produce</option><option>Grocery</option><option>Publix</option><option>BJs</option><option>Other</option>
+      </select>
+      <button class="btn" onclick="addGrocery()">Add</button>
+    </div>
+    <div class="chips" id="quickChips"></div>
+    <div id="groceryList"></div>
+    <div class="topbtns" style="margin-top:12px">
+      <button class="btn sm green" onclick="copyList()">📋 Copy list</button>
+      <button class="btn sm gray" onclick="clearChecked()">Clear checked</button>
+      <button class="btn sm gray" onclick="if(confirm('Clear the whole list?'))clearAll()">Clear all</button>
+    </div>
+    <p class="hint">🏪 <b>Grocery</b> = Aldi run (default). <b>Publix</b> = what Aldi doesn't carry. <b>BJs</b> = bulk (BJs/Costco/Sam's). Tap the <b>×1</b> chip to change quantity — adding a duplicate bumps it automatically. “Copy list” copies unchecked items as a checklist (<code>- [ ] item</code>); in Apple Notes, select the pasted lines and tap the ✓ checklist button to make them tappable.</p>
+  </section>
+</main>
+
+<!-- bottom tabs -->
+<nav class="tabs">
+  <button id="tab-meals" class="active" onclick="showView('meals')"><span class="ico">📖</span>Meals</button>
+  <button id="tab-ideas" onclick="showView('ideas')"><span class="ico">💡</span>Ideas</button>
+  <button id="tab-week" onclick="showView('week')"><span class="ico">📅</span>This Week</button>
+  <button id="tab-grocery" onclick="showView('grocery')"><span class="ico">🛒</span>Grocery</button>
+</nav>
+
+<!-- meal form -->
+<div class="overlay" id="mealFormOverlay" onclick="if(event.target===this)closeMealForm()">
+  <div class="sheet">
+    <h2 id="mealFormTitle">Add a meal</h2>
+    <div class="field"><label>Meal name *</label><input id="mfName" placeholder="e.g. Creamy Lemon Chicken Orzo"></div>
+    <div class="field"><label>Type</label><select id="mfType" style="width:100%"><option>Dinner</option><option>Lunch</option><option>Breakfast</option><option>Side</option></select></div>
+    <div class="field"><label>Links (one per line — Instagram, TikTok, websites)</label><textarea id="mfLinks" placeholder="https://…"></textarea></div>
+    <div class="field"><label>Tags (comma separated)</label><input id="mfTags" placeholder="chicken, bowl, quick"></div>
+    <div class="field"><label>Recipe / ingredients (paste caption text here)</label><textarea id="mfRecipe" style="min-height:110px"></textarea></div>
+    <div class="field"><label>Grocery items (one per line, optional — add "@publix" or "@bjs" or "@produce" to route them)</label><textarea id="mfGrocery" placeholder="Zucchini @produce&#10;Teriyaki Sauce&#10;Oreos @publix"></textarea></div>
+    <div class="field"><label>Notes</label><input id="mfNotes" placeholder="e.g. McKenzie loved it, double the sauce"></div>
+    <div class="row">
+      <button class="btn gray" onclick="closeMealForm()">Cancel</button>
+      <button class="btn" onclick="saveMealForm()">Save meal</button>
+    </div>
+    <button class="btn sm" id="mfDelete" style="display:none;background:#f7e3e3;color:var(--red);width:100%;margin-top:10px" onclick="deleteMeal()">Delete this meal</button>
+  </div>
+</div>
+
+<!-- week picker -->
+<div class="overlay" id="pickerOverlay" onclick="if(event.target===this)closePicker()">
+  <div class="sheet">
+    <h2>Add to this week</h2>
+    <input type="search" id="pickerQ" placeholder="Search…" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;margin-bottom:10px" oninput="renderPicker()">
+    <div id="pickerList"></div>
+  </div>
+</div>
+
+<!-- sync settings -->
+<div class="overlay" id="syncOverlay" onclick="if(event.target===this)closeSyncSheet()">
+  <div class="sheet">
+    <h2>🔄 Live sync between phones</h2>
+    <p class="hint" style="margin-top:0">Connect both phones to your free Firebase database so meals, plans and grocery checks appear on each other's phone instantly. Set it up once, then send your wife the invite link — hers configures automatically.</p>
+    <div class="field"><label>Firebase config (paste the whole <code>firebaseConfig = {…}</code> snippet or just the {…} part)</label><textarea id="syCfg" style="min-height:110px;font-family:monospace;font-size:12px" placeholder='{"apiKey":"AIza…","authDomain":"…","databaseURL":"https://…firebasedatabase.app","projectId":"…"}'></textarea></div>
+    <div class="field"><label>Household code (same on both phones)</label>
+      <div style="display:flex;gap:6px"><input id="syCode" placeholder="e.g. dolce-x7k2p9" style="flex:1"><button class="btn sm gray" onclick="genCode()">🎲 Generate</button></div>
+    </div>
+    <div class="row">
+      <button class="btn gray" onclick="closeSyncSheet()">Cancel</button>
+      <button class="btn" onclick="saveSyncSettings()">Connect</button>
+    </div>
+    <div id="syncExtra" style="display:none;margin-top:12px">
+      <button class="btn green" style="width:100%" onclick="copyInvite()">💌 Copy invite link for your wife</button>
+      <button class="btn sm" style="width:100%;margin-top:8px;background:#f7e3e3;color:var(--red)" onclick="disconnectSync()">Disconnect sync on this device</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ SEED DATA (from your Apple Notes, Jan–Jun 2026) ============ */
+const SEED_VERSION = 1;
+const SEED_MEALS = [
+{id:"m01",name:"Creamy Lemon Chicken Orzo",links:[{url:"https://www.instagram.com/reel/DZStW18JcuS/",label:"Instagram"}],tags:["chicken","pasta","one-pan"],rating:0,timesPlanned:2,lastPlanned:"2026-06-28",notes:"",recipe:"INGREDIENTS: 2 lbs chicken breasts • equal parts garlic & herb seasoning, smoked paprika, lemon pepper • 4 tbsp butter • 1 small onion, diced • 2 cups dry orzo • 3.5 cups chicken stock • garlic, salt & pepper • 1-2 tbsp Dijon • 1/4 cup heavy cream • 1/2 cup Parmesan • juice of 1/2 lemon • parsley.\n\n1. Season chicken w/ olive oil + seasonings. Sear both sides, remove (not fully cooked).\n2. Add butter + onion, scrape brown bits.\n3. Add orzo, stock, Dijon. Boil; salt & pepper.\n4. Cut chicken bite-size, return to skillet.\n5. Cover, low, 10-12 min until orzo tender.\n6. Off heat: stir in cream, Parm, lemon juice. Parsley on top.",groceryItems:[{name:"Chicken breasts",section:"BJs"},{name:"Orzo",section:"Grocery"},{name:"Heavy Cream",section:"Grocery"},{name:"Chicken Stock",section:"Grocery"},{name:"Grated Parmesan",section:"Grocery"},{name:"Lemon",section:"Produce"},{name:"Yellow Onion",section:"Produce"},{name:"Parsley",section:"Produce"}]},
+{id:"m02",name:"Teriyaki Meatballs w/ Peppers, Pineapple & Rice",links:[],tags:["beef","rice"],rating:0,timesPlanned:1,lastPlanned:"2026-06-28",notes:"McKenzie lunch: teriyaki meatballs/rice",recipe:"",groceryItems:[{name:"Bell Peppers",section:"Produce"},{name:"Pineapple",section:"Produce"},{name:"Teriyaki Sauce",section:"Grocery"},{name:"Basmati Rice",section:"Grocery"}]},
+{id:"m03",name:"Chicken Tenders & Fries (Salad)",links:[],tags:["chicken","easy"],rating:0,timesPlanned:1,lastPlanned:"2026-06-28",notes:"",recipe:"",groceryItems:[{name:"Chicken Tenders",section:"BJs"},{name:"Fries",section:"Grocery"},{name:"Romaine Lettuce",section:"Produce"}]},
+{id:"m04",name:"Polish Sausage, Potatoes, Peppers, Onions & Brussels Sprouts",links:[],tags:["sausage","sheet-pan"],rating:0,timesPlanned:1,lastPlanned:"2026-06-28",notes:"",recipe:"",groceryItems:[{name:"Polish Sausage",section:"Grocery"},{name:"Russet Potatoes",section:"Produce"},{name:"Bell Peppers",section:"Produce"},{name:"Yellow Onion",section:"Produce"},{name:"Brussels Sprouts",section:"Produce"}]},
+{id:"m05",name:"Hibachi (Chicken/Steak, Zucchini, Squash, Carrots, Rice)",links:[{url:"https://www.tiktok.com/t/ZTBFvn7t9/",label:"TikTok"},{url:"https://www.instagram.com/reel/DS74ueWjgQm/",label:"Instagram"}],tags:["chicken","steak","blackstone","favorite"],rating:0,timesPlanned:6,lastPlanned:"2026-06-28",notes:"Your most-planned meal! Recipes on tylergrowthlife's site (link in his bio). Yum yum sauce from Costco/Primal Kitchen.",recipe:"House combo: onion, carrot, zucchini, squash, mushroom + rice, protein of choice, yum yum sauce.",groceryItems:[{name:"Zucchini",section:"Produce"},{name:"Yellow Squash",section:"Produce"},{name:"Carrots",section:"Produce"},{name:"Mushroom",section:"Produce"},{name:"Yellow Onion",section:"Produce"},{name:"Jasmine Rice",section:"Grocery"},{name:"Yum Yum Sauce",section:"Grocery"}]},
+{id:"m06",name:"Garlic Parm Chicken Skewers w/ Carrots & Potatoes",links:[{url:"https://www.tiktok.com/t/ZTBWF56Qk/",label:"TikTok"}],tags:["chicken","air-fryer"],rating:0,timesPlanned:1,lastPlanned:"2026-06-21",notes:"",recipe:"INGREDIENTS: 2 lb chicken breast cubed • 2 tbsp olive oil • chili powder, paprika, onion powder, black pepper, Kinder's garlic & herb • 1/4 cup grated Parm • 2 tbsp light mayo.\n\nMix, place on skewers. Air fry 400F 12 min, flip, 10 more min.\n\nGARLIC BUTTER: 1 stick melted butter + 2 tbsp minced garlic + fresh thyme.\nGARLIC PARM SAUCE: 1/2 cup chopped parsley + 1/3 cup Parm + 1-2 tbsp light mayo + the garlic butter. Brush on hot skewers.",groceryItems:[{name:"Chicken Breast",section:"BJs"},{name:"Carrots",section:"Produce"},{name:"Little Potatoes",section:"Produce"},{name:"Parsley",section:"Produce"},{name:"Grated Parmesan",section:"Grocery"}]},
+{id:"m07",name:"Bourbon Chicken w/ Rice",links:[{url:"https://www.instagram.com/reel/DYIwzAgxYyO/",label:"Instagram"}],tags:["chicken","rice"],rating:0,timesPlanned:1,lastPlanned:"2026-06-21",notes:"",recipe:"INGREDIENTS: 2-3 lbs boneless skinless chicken thighs • 2 tbsp low-sodium soy • 2 tsp garlic powder • 2 tsp onion powder • 2 tsp all-purpose seasoning.\n\nSAUCE: 2 tbsp butter • 1/2 cup low-sodium soy • 1/2 cup hoisin • 1/4 cup bourbon or apple juice • 1/4 cup brown sugar • 1 tsp ginger paste • 1 tbsp garlic paste • 1/4 tsp red pepper flakes.",groceryItems:[{name:"Chicken Thighs",section:"BJs"},{name:"Small Apple Juice",section:"Grocery"},{name:"Ginger Paste",section:"Grocery"},{name:"Garlic Paste",section:"Grocery"}]},
+{id:"m08",name:"Smash Burgers",links:[],tags:["beef","blackstone","favorite"],rating:0,timesPlanned:4,lastPlanned:"2026-06-21",notes:"Cheese, onion, burger sauce. Sometimes lettuce.",recipe:"",groceryItems:[{name:"Ground Beef",section:"BJs"},{name:"Burger Buns",section:"Grocery"},{name:"Burger Cheese",section:"Grocery"},{name:"Yellow Onion",section:"Produce"},{name:"Mayo",section:"Grocery"}]},
+{id:"m09",name:"Wings w/ Roasted Carrots",links:[],tags:["chicken","wings"],rating:0,timesPlanned:1,lastPlanned:"2026-06-21",notes:"Coleslaw or celery/carrot sticks on the side. Garlic Parm & Mild wing sauce + ranch.",recipe:"",groceryItems:[{name:"Chicken Wings",section:"BJs"},{name:"Carrots",section:"Produce"},{name:"Celery",section:"Produce"},{name:"Garlic Parm & Mild Wing Sauce",section:"Grocery"},{name:"Ranch",section:"Grocery"}]},
+{id:"m10",name:"Southwest Chicken Bowl",links:[{url:"https://www.tiktok.com/t/ZTBkRMrvn/",label:"TikTok"}],tags:["chicken","bowl","meal-prep"],rating:0,timesPlanned:3,lastPlanned:"2026-06-14",notes:"Beans, corn, peppers, onions, cheese, lettuce.",recipe:"",groceryItems:[{name:"Chicken Breast",section:"BJs"},{name:"Black Beans - Can",section:"Grocery"},{name:"Corn - Can",section:"Grocery"},{name:"Bell Peppers",section:"Produce"},{name:"Romaine Lettuce",section:"Produce"},{name:"Shredded Cheddar",section:"Grocery"}]},
+{id:"m11",name:"Drumsticks, Rice & Peas",links:[],tags:["chicken"],rating:0,timesPlanned:1,lastPlanned:"2026-06-14",notes:"",recipe:"",groceryItems:[{name:"Chicken Drumsticks",section:"BJs"}]},
+{id:"m12",name:"Taquitos & Guac",links:[],tags:["easy"],rating:0,timesPlanned:1,lastPlanned:"2026-06-14",notes:"",recipe:"",groceryItems:[{name:"Tortillas",section:"Grocery"},{name:"Avocados",section:"Produce"}]},
+{id:"m13",name:"Stuffed Banana Peppers",links:[{url:"https://www.provecho.bio/@tylergrowthlife/stuffed-banana-peppers",label:"Recipe site"}],tags:["sausage","peppers"],rating:0,timesPlanned:1,lastPlanned:"2026-06-14",notes:"Large banana/cubanelle peppers, hot Italian sausage, cream cheese.",recipe:"",groceryItems:[{name:"Large Banana Peppers (Cubanelle)",section:"Produce"},{name:"Hot Italian Sausage",section:"Grocery"},{name:"Cream Cheese",section:"Grocery"},{name:"Monterey Jack Cheese",section:"Grocery"}]},
+{id:"m14",name:"Chicken Caesar Smash Burgers",links:[{url:"https://healthykitchen.com/chicken-caesar-smash-burgers-high-protein-and-easy-dinner/",label:"Recipe site"}],tags:["chicken","high-protein"],rating:0,timesPlanned:1,lastPlanned:"2026-06-02",notes:"",recipe:"",groceryItems:[]},
+{id:"m15",name:"Hot Dogs (Glizzards) w/ Fries",links:[],tags:["easy","quick"],rating:0,timesPlanned:3,lastPlanned:"2026-05-31",notes:"Organic grass-fed hot dogs from Costco/BJs; tallow fries or Jesse & Ben's (Whole Foods).",recipe:"",groceryItems:[{name:"Hot Dogs",section:"BJs"},{name:"Hot Dog Buns",section:"Grocery"},{name:"Fries",section:"Grocery"}]},
+{id:"m16",name:"BBQ Wings w/ Potato Salad",links:[{url:"https://www.instagram.com/reel/C4bJaP2PYMu/",label:"Instagram (potato salad)"}],tags:["chicken","wings","bbq"],rating:0,timesPlanned:1,lastPlanned:"2026-05-31",notes:"",recipe:"CREAMY POTATO SALAD: 5 lbs Yukon gold potatoes • 1 tbsp salt • 6 large eggs • 1 cup diced celery • 1/2 cup dill pickles, small dice • 1/2 red onion • 5 green onions (green parts) • 1/4 cup fresh dill.\nDRESSING: 2 cups mayo • 2 tbsp yellow mustard • 1/3 cup pickle juice • 1 tsp smoked paprika • salt • pepper.\nBoil potatoes ~15-20 min w/ salt, cool, peel, cube. Mix all + dressing, chill.",groceryItems:[{name:"Chicken Wings",section:"BJs"},{name:"Yukon Gold Potatoes",section:"Produce"},{name:"Celery",section:"Produce"},{name:"Dill",section:"Produce"},{name:"Eggs",section:"BJs"},{name:"BBQ Sauce",section:"Grocery"}]},
+{id:"m17",name:"Grilled Chicken, Sweet Potato & Brussels Sprouts",links:[],tags:["chicken","healthy"],rating:0,timesPlanned:1,lastPlanned:"2026-05-31",notes:"",recipe:"",groceryItems:[{name:"Chicken Breast",section:"BJs"},{name:"Sweet Potatoes",section:"Produce"},{name:"Brussels Sprouts",section:"Produce"}]},
+{id:"m18",name:"Rice & Kidney Beans w/ Chicken (+ Plantains)",links:[{url:"https://www.tiktok.com/t/ZThvDsqmm/",label:"TikTok (sòs)"},{url:"https://www.tiktok.com/t/ZThvDqeNb/",label:"TikTok (chicken)"}],tags:["chicken","haitian","rice"],rating:0,timesPlanned:2,lastPlanned:"2026-05-25",notes:"Chicken video = thegoldenbalance 'Perfect Chicken Breast'. Scotch bonnet for the sòs.",recipe:"",groceryItems:[{name:"Kidney Beans",section:"Grocery"},{name:"Chicken Thighs",section:"BJs"},{name:"Scotch Bonnet",section:"Produce"},{name:"Plantains",section:"Produce"}]},
+{id:"m19",name:"Pineapple Honey Chicken Bowl",links:[{url:"https://www.instagram.com/reel/DNBTiiOOjSJ/",label:"Instagram"}],tags:["chicken","bowl","anti-inflammatory"],rating:0,timesPlanned:1,lastPlanned:"2026-05-25",notes:"",recipe:"Serves 2. CHICKEN: 1 lb boneless skinless chicken thighs • 1 tbsp chili crunch oil • 1 tbsp raw honey • sea salt.\nPINEAPPLE SALSA: 1 cup fresh pineapple, finely diced • 1/4 cup red onion • 1/4 cup Persian cucumbers • 2 tbsp cilantro • juice of 1 lime • 1/4 jalapeño • sea salt.\nBOWL: 2 cups cooked rice + optional extra honey & chili crunch drizzle.",groceryItems:[{name:"Chicken Thighs",section:"BJs"},{name:"Pineapple",section:"Produce"},{name:"Red Onion",section:"Produce"},{name:"Persian Cucumber",section:"Produce"},{name:"Jalapeño",section:"Produce"},{name:"Cilantro",section:"Produce"},{name:"Chili Crunch Oil",section:"Grocery"}]},
+{id:"m20",name:"Mediterranean Chicken Plate w/ Orzo",links:[{url:"https://www.instagram.com/reel/DVpGGK0j1iv/",label:"Instagram"}],tags:["chicken","mediterranean","high-protein","favorite"],rating:0,timesPlanned:3,lastPlanned:"2026-05-25",notes:"shredhappens — 524 cal / 56g protein per serving, makes 5.",recipe:"1. Cut 2 lbs chicken thighs into 1.5-2\" pieces. Toss w/ 1 tsp olive oil, 1 tbsp each garlic powder/onion powder/paprika/Aleppo pepper, 1/4 tsp cinnamon, salt & pepper, 1.5 tbsp tomato paste, 2 tbsp plain yogurt, juice of 1 lemon. Marinate 2-6 hrs (or overnight).\n2. Sear chicken until cooked & charred.\n3. Garlicky yogurt sauce + tomato salad + rice or orzo. (Full steps in the reel.)",groceryItems:[{name:"Chicken Thighs",section:"BJs"},{name:"Greek Yogurt",section:"Grocery"},{name:"Orzo",section:"Grocery"},{name:"Tomato Paste",section:"Grocery"},{name:"Lemon",section:"Produce"},{name:"Cherry Tomatoes",section:"Produce"},{name:"Persian Cucumber",section:"Produce"},{name:"Parsley",section:"Produce"}]},
+{id:"m21",name:"Lemon Garlic Chicken Bowls",links:[],tags:["chicken","bowl"],rating:0,timesPlanned:1,lastPlanned:"2026-05-09",notes:"Need to find the recipe link again.",recipe:"",groceryItems:[]},
+{id:"m22",name:"BBQ Drumsticks w/ Carrots",links:[],tags:["chicken","bbq"],rating:0,timesPlanned:1,lastPlanned:"2026-05-09",notes:"Carrots instead of green beans.",recipe:"",groceryItems:[{name:"Chicken Drumsticks",section:"BJs"},{name:"Carrots",section:"Produce"},{name:"BBQ Seasoning",section:"Grocery"}]},
+{id:"m23",name:"Garlic Herb Chicken Thighs",links:[],tags:["chicken"],rating:0,timesPlanned:1,lastPlanned:"2026-05-09",notes:"",recipe:"",groceryItems:[{name:"Chicken Thighs",section:"BJs"}]},
+{id:"m24",name:"Honey Lime Chicken w/ Avocado Rice",links:[{url:"https://www.instagram.com/p/DXt_sWpk1vv/",label:"Instagram"}],tags:["chicken","rice"],rating:0,timesPlanned:1,lastPlanned:"2026-05-03",notes:"",recipe:"CHICKEN: 2 chicken breasts, diced • 2 tbsp honey • 2 tbsp lime juice • 1 tbsp soy sauce • 1 tbsp olive oil • 2 cloves garlic • salt & pepper. Marinate 20+ min, pan-sear until caramelized.\nAVOCADO RICE: 2 cups cooked rice • 1 avocado diced • 1 tbsp lime juice • 1 tsp lime zest • 2 tbsp cilantro • salt. Stack rice, top w/ chicken, garnish cilantro/lime zest.",groceryItems:[{name:"Chicken Breast",section:"BJs"},{name:"Avocados",section:"Produce"},{name:"Limes",section:"Produce"},{name:"Cilantro",section:"Produce"}]},
+{id:"m25",name:"Drumsticks, Potatoes & Green Beans (Garlic-Mustard Tray Bake)",links:[{url:"https://www.instagram.com/reel/DXPYD7lDEgA/",label:"Instagram"}],tags:["chicken","sheet-pan"],rating:0,timesPlanned:1,lastPlanned:"2026-05-03",notes:"comedinewithbrie — 60g protein / 669 cal. Full ingredient list via link in her bio.",recipe:"Score drumsticks, marinate w/ wholegrain mustard, olive oil, smoked paprika, garlic granules, oregano, chilli flakes, salt (30 min). Tray w/ potato wedges coated in leftover marinade. Pour over: 150ml chicken bone broth + 1 tbsp wholegrain mustard + 1 tbsp Dijon + 1 tbsp honey + 2 minced garlic cloves + juice of 1 lemon. Oven 200°C ~30 min, basting.",groceryItems:[{name:"Chicken Drumsticks",section:"BJs"},{name:"Baby Potatoes",section:"Produce"},{name:"Green Beans",section:"Produce"},{name:"Chicken Bone Broth",section:"Grocery"},{name:"Stone Ground Mustard",section:"Grocery"}]},
+{id:"m26",name:"Honey Glazed Salmon Bowl",links:[{url:"https://www.instagram.com/reel/DHZBhLmSoqs/",label:"Instagram"}],tags:["salmon","bowl","favorite"],rating:0,timesPlanned:2,lastPlanned:"2026-05-03",notes:"kalejunkie. Publix bourbon salmon day-of is the shortcut version.",recipe:"Makes 4. SALMON BITES: 1.5 lbs salmon, skinless, bite-size • 2 tbsp avocado oil • 2 tbsp honey • 3 tbsp sriracha • 1/4 cup low-sodium soy. Bake 400F 10-11 min on parchment.\nCUCUMBER AVOCADO SALAD: 2 Persian cucumbers + 1 avocado diced + 1/4 cup cilantro + juice 1 lime + 1 tbsp honey.\nSPICY SAUCE: 1 cup cottage cheese + 1 lime + 1/4 cup sriracha + 2 tsp cumin + 1 tsp smoked paprika + 1 tbsp honey (blend).\nServe over 2 cups rice.",groceryItems:[{name:"Salmon",section:"BJs"},{name:"Persian Cucumber",section:"Produce"},{name:"Avocados",section:"Produce"},{name:"Limes",section:"Produce"},{name:"Cilantro",section:"Produce"},{name:"Cottage Cheese",section:"Grocery"},{name:"Sriracha",section:"Grocery"}]},
+{id:"m27",name:"Honey Mustard Chicken Tenders w/ Roasted Potatoes",links:[{url:"https://www.caileeeats.com/recipes/honey-mustard-chicken-tenders",label:"Cailee Eats"}],tags:["chicken"],rating:0,timesPlanned:1,lastPlanned:"2026-04-26",notes:"",recipe:"",groceryItems:[{name:"Chicken Tenders",section:"BJs"},{name:"Little Potatoes",section:"Produce"},{name:"Salad Kit",section:"Produce"}]},
+{id:"m28",name:"Honey Garlic Chicken & Potatoes w/ Carrots",links:[{url:"https://www.instagram.com/reel/DT5-zqCE0nn/",label:"Instagram"}],tags:["chicken","sheet-pan"],rating:0,timesPlanned:1,lastPlanned:"2026-04-26",notes:"",recipe:"CHICKEN: 1.5 lbs thighs or breasts • 2 tbsp olive oil • salt & pepper.\nHONEY GARLIC SAUCE: 1/4 cup honey • 3 cloves garlic • 2 tbsp soy/tamari • 1 tbsp apple cider vinegar or lemon juice • chili flakes optional.\nROASTED VEG: 1.5 lbs baby potatoes halved + 4 carrots in sticks + 3 tbsp olive oil + salt/pepper + 1 tsp thyme or rosemary. 425F 30-35 min, flip halfway. Sear chicken, glaze w/ sauce, serve together.",groceryItems:[{name:"Chicken Thighs",section:"BJs"},{name:"Baby Potatoes",section:"Produce"},{name:"Carrots",section:"Produce"},{name:"Honey",section:"Grocery"}]},
+{id:"m29",name:"Grilled Chicken, Baked Potato & Hot Maple Carrots",links:[{url:"https://www.instagram.com/reel/DVulSAJx0Uv/",label:"Instagram (plate idea)"},{url:"https://www.instagram.com/reel/DRchmS7keCF/",label:"Instagram (carrots)"}],tags:["chicken","healthy"],rating:0,timesPlanned:2,lastPlanned:"2026-04-12",notes:"Green beans optional side.",recipe:"HOT MAPLE ROASTED CARROTS (chefkla): 1 lb large carrots • 4 tbsp neutral oil • 1/2 tsp salt • 3 tbsp maple syrup • 1 tsp fresh thyme • black pepper.\nGLAZE: 1 tsp gochujang + 3 tbsp maple syrup.\nGARNISH: 2 tsp everything bagel seasoning.\n400F: peel/halve carrots, toss w/ syrup+oil+salt+pepper+thyme, roast 40 min turning. Pour glaze over, garnish.",groceryItems:[{name:"Chicken Breast",section:"BJs"},{name:"Russet Potatoes",section:"Produce"},{name:"Carrots",section:"Produce"},{name:"Green Beans",section:"Produce"},{name:"Pure Maple Syrup",section:"Grocery"}]},
+{id:"m30",name:"Zucchini, Peppers & Onion w/ Rice and Grilled Chicken",links:[],tags:["chicken","veggie-heavy"],rating:0,timesPlanned:2,lastPlanned:"2026-04-12",notes:"",recipe:"",groceryItems:[{name:"Zucchini",section:"Produce"},{name:"Bell Peppers",section:"Produce"},{name:"Yellow Onion",section:"Produce"},{name:"Chicken Breast",section:"BJs"}]},
+{id:"m31",name:"Bourbon Salmon w/ Rice & Green Beans",links:[],tags:["salmon","quick"],rating:0,timesPlanned:1,lastPlanned:"2026-04-12",notes:"Buy Publix bourbon salmon day-of.",recipe:"",groceryItems:[{name:"Bourbon Salmon (day of)",section:"Publix"},{name:"Green Beans",section:"Produce"}]},
+{id:"m32",name:"Chicken Kebabs",links:[{url:"https://kristineskitchenblog.com/chicken-kabobs/",label:"Kristine's Kitchen"}],tags:["chicken","grill","favorite"],rating:0,timesPlanned:4,lastPlanned:"2026-04-12",notes:"A repeat favorite — planned 4 weeks.",recipe:"",groceryItems:[{name:"Chicken Breast",section:"BJs"},{name:"Bell Peppers",section:"Produce"},{name:"Red Onion",section:"Produce"},{name:"Zucchini",section:"Produce"}]},
+{id:"m33",name:"Grilled Chicken, Zucchini Parm Fries & Sweet Potato",links:[{url:"https://www.instagram.com/reel/DSWeVCTDN05/",label:"Instagram (zucchini fries)"}],tags:["chicken","air-fryer"],rating:0,timesPlanned:1,lastPlanned:"2026-04-06",notes:"",recipe:"ZUCCHINI PARM FRIES: 2 zucchini in strips • drizzle EVOO • 1 tbsp salt • 1 tbsp garlic powder • 1/2 cup panko • 1/2 cup Parmesan (divided). Air fry 400F 15 min, flip, more Parm, 10 more min until crispy. Dip: garlic mayo.",groceryItems:[{name:"Zucchini",section:"Produce"},{name:"Sweet Potato",section:"Produce"},{name:"Chicken Breast",section:"BJs"},{name:"Panko Crumbs",section:"Grocery"}]},
+{id:"m34",name:"Steak, Baked Potato, Carrots & Green Beans",links:[{url:"https://www.tiktok.com/t/ZTkkjk3Qb/",label:"TikTok (herbed veg)"},{url:"https://www.tiktok.com/t/ZThkJST63/",label:"TikTok (air-fryer method)"},{url:"https://www.tiktok.com/t/ZThkJoUCa/",label:"TikTok (steak)"}],tags:["steak","favorite"],rating:0,timesPlanned:5,lastPlanned:"2026-04-06",notes:"Also appears as 'Steak w/ Baked Potato & a veggie' — your go-to steak night. Filet from Publix, ribeye from BJs.",recipe:"Side idea: herbed sautéed string beans & carrots with fresh garden herbs.",groceryItems:[{name:"Filet",section:"Publix"},{name:"Russet Potatoes",section:"Produce"},{name:"Carrots",section:"Produce"},{name:"Green Beans",section:"Produce"}]},
+{id:"m35",name:"Chili Lime Shrimp, Mango Salsa & Coconut Cilantro Rice",links:[{url:"https://www.instagram.com/reel/DLD82D-yV7K/",label:"Instagram"},{url:"https://www.littlebroken.com/cilantro-lime-coconut-rice/",label:"Coconut rice"},{url:"https://gimmedelicious.com/creamy-avocado-cilantro-lime-dressing/",label:"Avocado dressing"}],tags:["shrimp","summer"],rating:0,timesPlanned:2,lastPlanned:"2026-03-29",notes:"emmanuel.duverneau reel.",recipe:"",groceryItems:[{name:"Shrimp",section:"BJs"},{name:"Mango",section:"Produce"},{name:"Limes",section:"Produce"},{name:"Cilantro",section:"Produce"},{name:"Coconut Milk",section:"Grocery"},{name:"Jasmine Rice",section:"Grocery"}]},
+{id:"m36",name:"Stuffed Bell Peppers",links:[{url:"https://www.dinneratthezoo.com/stuffed-bell-peppers/",label:"Dinner at the Zoo"}],tags:["beef","peppers"],rating:0,timesPlanned:1,lastPlanned:"2026-03-29",notes:"",recipe:"",groceryItems:[{name:"Bell Peppers x4",section:"Produce"},{name:"Ground Beef",section:"BJs"},{name:"Tomato Sauce 15oz",section:"Grocery"},{name:"Mozzarella Cheese",section:"Grocery"}]},
+{id:"m37",name:"Chicken, Green Beans/Carrots/Broccoli & Rice or Sweet Potato",links:[],tags:["chicken","healthy","flexible"],rating:0,timesPlanned:1,lastPlanned:"2026-03-29",notes:"",recipe:"",groceryItems:[]},
+{id:"m38",name:"Beef & Vegetable Stir Fry (Flank Steak)",links:[{url:"https://takestwoeggs.com/beef-and-vegetable-stir-fry/",label:"Takes Two Eggs"}],tags:["steak","asian"],rating:0,timesPlanned:1,lastPlanned:"2026-03-22",notes:"Shaoxing wine, dark soy, oyster sauce from the pantry list.",recipe:"",groceryItems:[{name:"1lb Flank Steak",section:"Publix"},{name:"Snow Peas",section:"Produce"},{name:"Shiitake Mushrooms",section:"Produce"},{name:"Ginger",section:"Produce"}]},
+{id:"m39",name:"Fried Rice w/ Shrimp",links:[{url:"https://www.tiktok.com/t/ZThkJF7e9/",label:"TikTok (CJ's egg fried rice)"},{url:"https://cjeatsrecipes.com/egg-fried-rice/",label:"Written recipe"},{url:"https://www.tiktok.com/t/ZThkJNNk7/",label:"TikTok (honey garlic shrimp)"},{url:"https://www.tcmworld.org/recipes/ice-leek-onion-egg-tcm-benefits/",label:"TCM leek version"}],tags:["shrimp","rice","asian"],rating:0,timesPlanned:2,lastPlanned:"2026-03-22",notes:"",recipe:"",groceryItems:[{name:"Shrimp",section:"BJs"},{name:"Jasmine Rice",section:"Grocery"},{name:"Eggs",section:"BJs"},{name:"Green Onion",section:"Produce"},{name:"Soy Sauce",section:"Grocery"}]},
+{id:"m40",name:"Zucchini and Pasta",links:[{url:"https://www.tcmworld.org/recipes/zucchini-and-pasta/",label:"TCM World"}],tags:["pasta","veggie-heavy"],rating:0,timesPlanned:1,lastPlanned:"2026-03-22",notes:"Figure out meat for Wilbert 😄",recipe:"",groceryItems:[{name:"Zucchini",section:"Produce"},{name:"Pine Nuts",section:"Grocery"}]},
+{id:"m41",name:"Sesame Sweet Potato w/ Grilled Chicken",links:[{url:"https://www.tcmworld.org/recipes/sesame-sweet-potato-snack/",label:"TCM World"}],tags:["chicken","healthy"],rating:0,timesPlanned:1,lastPlanned:"2026-03-22",notes:"",recipe:"",groceryItems:[{name:"Sweet Potato",section:"Produce"},{name:"Black Sesame Seeds",section:"Grocery"},{name:"Sesame Oil",section:"Grocery"}]},
+{id:"m42",name:"Greek Chicken Meatballs w/ Rice & Tzatziki",links:[{url:"https://eatthegains.com/greek-chicken-meatballs/",label:"Eat the Gains"}],tags:["chicken","greek","meal-prep"],rating:0,timesPlanned:1,lastPlanned:"2026-03-15",notes:"Pita optional. Ground chicken from Publix.",recipe:"",groceryItems:[{name:"Ground Chicken",section:"Publix"},{name:"Greek Yogurt",section:"Grocery"},{name:"Persian Cucumber",section:"Produce"},{name:"Dill",section:"Produce"}]},
+{id:"m43",name:"Steak Bites, Creamy Potatoes & Brussels Sprout Salad",links:[{url:"https://www.instagram.com/reel/DTx7NTzgu4t/",label:"Instagram"}],tags:["steak"],rating:0,timesPlanned:1,lastPlanned:"2026-03-08",notes:"emmanuel.duverneau.",recipe:"STEAK: 2 lbs steak cut small • 1 tbsp avocado oil • 2 tsp salt • 1/2 tsp pepper • 1 tsp onion powder • 1/2 tsp red pepper flakes • 2 tbsp butter • 5 garlic cloves minced • 1 tbsp Worcestershire • 1/4 cup parsley • 5 green onions.\nSeason steak, sear in batches 3-4 min until crispy, set aside. Same skillet: butter + garlic 1 min, Worcestershire, return steak, toss w/ parsley. (Potatoes + shaved Brussels salad steps in reel.)",groceryItems:[{name:"Ribeye",section:"BJs"},{name:"Yukon Gold Potatoes",section:"Produce"},{name:"Brussels Sprouts",section:"Produce"},{name:"Green Onion",section:"Produce"}]},
+{id:"m44",name:"Sausage, Potato & Broccolini Sheet Pan",links:[{url:"https://www.instagram.com/reel/DUV5qmaiFO1/",label:"Instagram"}],tags:["sausage","sheet-pan","quick"],rating:0,timesPlanned:1,lastPlanned:"2026-03-08",notes:"20-min sheet pan dinner.",recipe:"NEEDS: smoked sausage • yellow potatoes • parsley • garlic powder • paprika • oregano • EVOO • s+p • garlic • broccolini • lemon • dry white wine.",groceryItems:[{name:"Smoked Sausage",section:"Grocery"},{name:"Yukon Gold Potatoes",section:"Produce"},{name:"Broccolini",section:"Produce"},{name:"Lemon",section:"Produce"}]},
+{id:"m45",name:"Greek Chicken Bowls",links:[{url:"https://www.tiktok.com/t/ZThahFBvF/",label:"TikTok"},{url:"https://www.sprinklesandsprouts.com/greek-orzo/",label:"Greek orzo side"}],tags:["chicken","greek","bowl","meal-prep"],rating:0,timesPlanned:2,lastPlanned:"2026-02-22",notes:"calwillcookit — ~6 servings, great leftovers.",recipe:"~3 lbs boneless skinless chicken thighs.\nMARINADE: 1/3 cup EVOO • 1.5 cups fat-free Greek yogurt • 1/4 cup minced garlic • 2/3 cup chopped dill • Greek seasoning • salt & pepper • zest of 1/2 lemon + juice of 1.\nTZATZIKI: 2 cups Greek yogurt • 1.5 tbsp garlic • 3/4 cup diced cucumber • 1/2 cup dill • 1/4 cup EVOO • 1-2 tbsp lemon juice • s&p.\nCUCUMBER TOMATO SALAD: 2 cups cucumber • 1.5 cups tomato • 1 cup red onion • dill + parsley + garlic (full steps in video).",groceryItems:[{name:"Chicken Thighs",section:"BJs"},{name:"Greek Yogurt",section:"Grocery"},{name:"Cucumber",section:"Produce"},{name:"Roma Tomatoes",section:"Produce"},{name:"Red Onion",section:"Produce"},{name:"Dill",section:"Produce"},{name:"Lemon",section:"Produce"}]},
+{id:"m46",name:"Chicken Thighs, Potatoes & Brussels Sprouts Caesar Salad",links:[{url:"https://www.instagram.com/reel/DU6N6aTkpVu/",label:"Instagram"}],tags:["chicken"],rating:0,timesPlanned:1,lastPlanned:"2026-02-22",notes:"",recipe:"CHICKEN (2 lbs thighs): 3 tbsp olive oil • 1 tsp each onion powder/garlic powder/red pepper flakes/oregano • 1.5 tsp salt • 1/2 tsp pepper • zest 1 lemon + juice of 1/2. Bake 425F 30-40 min until 165F & crispy.\nMINI RED POTATOES (1 lb): parboil, then roast w/ olive oil, paprika, onion & garlic powder, salt, pepper.",groceryItems:[{name:"Chicken Thighs",section:"BJs"},{name:"Mini Red Potatoes",section:"Produce"},{name:"Brussels Sprouts",section:"Produce"},{name:"Lemon",section:"Produce"}]},
+{id:"m47",name:"Tacos",links:[],tags:["beef","quick","favorite"],rating:0,timesPlanned:2,lastPlanned:"2026-02-09",notes:"Ground beef, lettuce, sour cream, cheese, tomato, onion. Siete seasoning + hard nacho shells.",recipe:"",groceryItems:[{name:"Ground Beef",section:"BJs"},{name:"Taco Seasoning",section:"Grocery"},{name:"Taco Shells",section:"Grocery"},{name:"Shredded Lettuce",section:"Produce"},{name:"Roma Tomatoes",section:"Produce"},{name:"Sour Cream",section:"Grocery"},{name:"Taco Cheese",section:"Grocery"}]},
+{id:"m48",name:"Mashed Potatoes w/ Steak & Broccoli/Green Beans",links:[],tags:["steak","comfort"],rating:0,timesPlanned:1,lastPlanned:"2026-02-09",notes:"",recipe:"",groceryItems:[{name:"Filet",section:"Publix"},{name:"Potatoes (Small Bag)",section:"Produce"},{name:"Broccoli",section:"Produce"}]},
+{id:"m49",name:"Honey Garlic Chicken w/ Sweet Potato & Broccoli",links:[{url:"https://www.tiktok.com/t/ZThkeJ845/",label:"TikTok"},{url:"https://www.facebook.com/share/p/17oMyWWgyg/",label:"Facebook"}],tags:["chicken","air-fryer"],rating:0,timesPlanned:1,lastPlanned:"2026-01-18",notes:"",recipe:"CHICKEN BITES: 2 lbs tenderloins cubed • 3 tbsp olive oil • salt • 1 tsp each paprika, Italian seasoning, onion powder, garlic powder, white pepper. Rest 30 min. Air fry 380F 8 min, flip, 5 more.\nGARLIC HONEY BUTTER: 2 tbsp melted butter • 1 tbsp soy • 1 tbsp honey • zest 1 lime + juice 1/2 • s&p • 1 garlic clove minced. Pour over hot chicken.",groceryItems:[{name:"Chicken Tenders",section:"BJs"},{name:"Sweet Potato",section:"Produce"},{name:"Broccoli",section:"Produce"},{name:"Honey",section:"Grocery"}]},
+{id:"m50",name:"Beef Lasagna Rolls",links:[{url:"https://www.facebook.com/share/r/1GDG6iNMqG/",label:"Facebook"}],tags:["beef","pasta","comfort"],rating:0,timesPlanned:1,lastPlanned:"2026-01-18",notes:"",recipe:"",groceryItems:[{name:"Ground Beef",section:"BJs"},{name:"Lasagna Noodles",section:"Grocery"},{name:"Mozzarella Cheese",section:"Grocery"},{name:"Tomato Sauce",section:"Grocery"},{name:"Tomato Paste",section:"Grocery"}]},
+{id:"s01",name:"Pico de Gallo (Chipotle-style)",links:[{url:"https://www.tiktok.com/t/ZTBC9rEuh/",label:"TikTok"}],tags:["side/sauce"],rating:0,timesPlanned:3,lastPlanned:"2026-06-28",notes:"Linked in almost every recent note!",recipe:"INGREDIENTS: 5 cups Roma tomatoes, diced • 1/2 cup cilantro, finely chopped • 1/4 cup red onion • 1/4 cup fresh citrus juice • 1/4 cup jalapeño, finely diced (seeds out for less heat) • 2 tsp fine sea salt.\n\n1. Mix everything in a large bowl.\n2. Taste & adjust salt.\n3. Refrigerate 30 min before serving.",groceryItems:[{name:"Roma Tomatoes",section:"Produce"},{name:"Cilantro",section:"Produce"},{name:"Red Onion",section:"Produce"},{name:"Jalapeño",section:"Produce"},{name:"Limes",section:"Produce"}]},
+{id:"s02",name:"Homemade Ranch (Low-Cal Buttermilk)",links:[{url:"https://www.instagram.com/reel/DGCIw6qyKcZ/",label:"Instagram"}],tags:["side/sauce"],rating:0,timesPlanned:1,lastPlanned:"2026-04-26",notes:"25 cal/serving, makes 18.",recipe:"1 cup nonfat Greek yogurt • 1/2 cup light mayo • 1/2 cup low-fat buttermilk • 2 tsp garlic powder • 2 tsp onion powder • 1 tsp dry oregano • 2-3 tbsp chopped chives • 2-3 tbsp chopped dill • 3 cloves garlic minced • 2-3 tbsp lemon juice • s&p.",groceryItems:[{name:"Greek Yogurt",section:"Grocery"},{name:"Buttermilk",section:"Grocery"},{name:"Chives",section:"Produce"},{name:"Dill",section:"Produce"}]},
+{id:"s03",name:"Soups for McKenzie (Cailee Eats)",links:[{url:"https://www.caileeeats.com/recipes/creamy-garlic-parmesan-soup",label:"Garlic Parm soup"},{url:"https://www.caileeeats.com/recipes/lemon-chicken-and-orzo-soup",label:"Lemon Chicken Orzo soup"}],tags:["side/sauce","lunch","McKenzie"],rating:0,timesPlanned:1,lastPlanned:"2026-05-03",notes:"",recipe:"",groceryItems:[]}
+];
+/* McKenzie's breakfasts & lunches from the notes */
+const SEED_MEALS_V2 = [
+{id:"b01",name:"Avocado, Sausage & Eggs",mealType:"Breakfast",links:[],tags:["McKenzie","eggs"],rating:0,timesPlanned:1,lastPlanned:"2026-06-28",notes:"",recipe:"",groceryItems:[{name:"Avocados",section:"Produce"},{name:"Breakfast Chicken Sausage",section:"Grocery"},{name:"Eggs",section:"BJs"}]},
+{id:"b02",name:"Eggs & Cheese w/ Avocado",mealType:"Breakfast",links:[],tags:["McKenzie","eggs"],rating:0,timesPlanned:2,lastPlanned:"2026-05-03",notes:"",recipe:"",groceryItems:[{name:"Eggs",section:"BJs"},{name:"Cheese",section:"Grocery"},{name:"Avocados",section:"Produce"}]},
+{id:"l01",name:"Potato Taco Bowls (Pico, Guac, Cheese, Lettuce)",mealType:"Lunch",links:[],tags:["McKenzie","bowl"],rating:0,timesPlanned:1,lastPlanned:"2026-06-28",notes:"Uses the Chipotle-style pico recipe.",recipe:"",groceryItems:[{name:"Russet Potatoes",section:"Produce"},{name:"Pico",section:"Grocery"},{name:"Prepackaged Guac Singles",section:"Grocery"},{name:"Cheese (for taco bowls)",section:"Grocery"},{name:"Romaine Lettuce",section:"Produce"}]},
+{id:"l02",name:"Veggie Fried Rice (Carrots, Broccoli, Peas)",mealType:"Lunch",links:[],tags:["McKenzie","rice"],rating:0,timesPlanned:4,lastPlanned:"2026-06-21",notes:"McKenzie's most frequent lunch — sometimes w/ egg, peppers & onions, pico + guac.",recipe:"",groceryItems:[{name:"Carrots",section:"Produce"},{name:"Broccoli",section:"Produce"},{name:"Frozen Peas and Carrots",section:"Grocery"},{name:"Eggs",section:"BJs"},{name:"Single Serve Rice",section:"Grocery"}]},
+{id:"l03",name:"Rice w/ Honey Carrots & Edamame",mealType:"Lunch",links:[],tags:["McKenzie","rice"],rating:0,timesPlanned:1,lastPlanned:"2026-05-25",notes:"",recipe:"",groceryItems:[{name:"Carrots",section:"Produce"},{name:"Frozen Edamame",section:"Grocery"},{name:"Honey",section:"Grocery"}]},
+{id:"l04",name:"Rice, Broccoli & Chicken Sausage",mealType:"Lunch",links:[],tags:["McKenzie","rice"],rating:0,timesPlanned:2,lastPlanned:"2026-03-22",notes:"",recipe:"",groceryItems:[{name:"Broccoli",section:"Produce"},{name:"Chicken Sausage",section:"Grocery"},{name:"Jasmine Rice",section:"Grocery"}]},
+{id:"l05",name:"Baked Potato w/ Chicken Sausage",mealType:"Lunch",links:[],tags:["McKenzie"],rating:0,timesPlanned:1,lastPlanned:"2026-03-22",notes:"",recipe:"",groceryItems:[{name:"Russet Potatoes",section:"Produce"},{name:"Chicken Sausage",section:"Grocery"}]}
+];
+
+/* Curated "new ideas" pool — built from your actual patterns */
+const IDEA_POOL = [
+{name:"Loaded Sweet Potato Taco Bowl",tags:["bowl","high-protein"],why:"Your potato taco bowls × Southwest Chicken Bowl",desc:"Baked sweet potato + seasoned ground beef, mozzarella, tomato, onion, jalapeño, lime & avocado. 60g protein.",link:"https://www.tiktok.com/@jackearly/video/7645017852130430221"},
+{name:"Chicken Shawarma Bowls w/ Garlic Sauce",tags:["bowl","mediterranean"],why:"You loved the Mediterranean Chicken Plate & Greek Bowls",desc:"Yogurt-marinated chicken thighs, rice, cucumber-tomato salad, toum garlic sauce."},
+{name:"Jerk Chicken w/ Rice & Peas",tags:["island","chicken"],why:"Pairs with your Haitian rice & kidney beans nights",desc:"Scotch bonnet marinade — you already buy them! Drumsticks or thighs, coconut rice & peas."},
+{name:"Blackstone Chicken Fajitas",tags:["blackstone","quick"],why:"Hibachi + smash burger griddle nights, taco flavors",desc:"Peppers & onions you always have, your pico + guac singles, tortillas from the pantry list."},
+{name:"Cajun Shrimp & Sausage Sheet Pan",tags:["shrimp","sheet-pan"],why:"Sausage-potato-broccolini × your shrimp nights",desc:"Shrimp, smoked sausage, peppers, baby potatoes, cajun butter — one pan, 25 min."},
+{name:"Honey Sriracha Chicken Bowls",tags:["bowl","chicken"],why:"Same energy as the Honey Glazed Salmon Bowl",desc:"kalejunkie (whose salmon bowl you saved) has a chicken version — same cucumber-avocado salad."},
+{name:"Greek Turkey Smash Burgers w/ Tzatziki",tags:["burgers","greek"],why:"Smash Burgers × Greek Chicken Bowls mashup",desc:"Use the tzatziki recipe you already have from the Greek bowls."},
+{name:"Steak Fajita Bowls w/ Cilantro Lime Rice",tags:["steak","bowl"],why:"Steak night × Southwest Bowl",desc:"Your BJs ribeye, peppers & onions, coconut-cilantro rice swap works too."},
+{name:"Grilled Pineapple Chicken Skewers",tags:["grill","chicken"],why:"Teriyaki-pineapple meatballs × your kebab habit",desc:"Same kebab method, teriyaki glaze, fresh pineapple chunks."},
+{name:"Garlic Butter Salmon Bites w/ Fried Rice",tags:["salmon","rice"],why:"Salmon bowls × McKenzie's fried rice",desc:"Air-fryer salmon bites over CJ's egg fried rice recipe you already saved."},
+{name:"Creamy Tuscan Chicken Orzo",tags:["pasta","one-pan"],why:"Sibling of your Creamy Lemon Chicken Orzo (2×)",desc:"Same one-skillet method — sun-dried tomato, spinach & parm instead of lemon."},
+{name:"Chicken Caesar Wraps",tags:["McKenzie","lunch"],why:"Chicken Caesar Smash Burgers, wrapped for lunch",desc:"Great McKenzie lunch — rotisserie or leftover grilled chicken, low-carb tortillas."},
+{name:"Steak Bites Hibachi Night",tags:["blackstone","steak"],why:"Steak Bites recipe × your hibachi setup",desc:"Your garlic steak bites recipe on the Blackstone with zucchini, squash & yum yum."},
+{name:"BBQ Chicken Baked Potatoes",tags:["chicken","comfort"],why:"BBQ drumsticks × steak-night baked potatoes",desc:"Loaded russets with shredded BBQ chicken, cheddar & green onion."}
+]; /*__SEED__*/
+
+/* ============ STATE ============ */
+const LS_KEY='dolceDinners.v1';
+let state=null;
+function normalizeTypes(){
+  state.meals.forEach(m=>{
+    if(!m.mealType){
+      if(m.id==='s01'||m.id==='s02') m.mealType='Side';
+      else if(m.id==='s03') m.mealType='Lunch';
+      else if((m.tags||[]).includes('side/sauce')) m.mealType='Side';
+      else m.mealType='Dinner';
+    }
+  });
+  state.grocery.forEach(g=>{ if(!g.qty) g.qty=1; });
+}
+function load(){
+  try{ state=JSON.parse(localStorage.getItem(LS_KEY)); }catch(e){ state=null; }
+  if(!state){ state={seedVersion:2, meals:SEED_MEALS.concat(SEED_MEALS_V2).map(m=>({...m})), weeks:{}, grocery:[]}; }
+  if((state.seedVersion||1)<2){
+    SEED_MEALS_V2.forEach(nm=>{ if(!state.meals.find(m=>m.id===nm.id)) state.meals.push({...nm}); });
+    state.seedVersion=2;
+  }
+  normalizeTypes(); save();
+}
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); schedulePush(); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1900); }
+
+/* ============ TABS ============ */
+function showView(v){
+  document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.tabs button').forEach(e=>e.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.getElementById('tab-'+v).classList.add('active');
+  if(v==='meals')renderMeals(); if(v==='week')renderWeek(); if(v==='grocery')renderGrocery(); if(v==='ideas')renderIdeas();
+}
+/* type filter */
+let typeFilter='';
+function setTypeFilter(btn){
+  typeFilter=btn.dataset.type;
+  document.querySelectorAll('#typeSeg button').forEach(b=>b.classList.toggle('on',b===btn));
+  renderMeals();
+}
+
+/* ============ MEALS ============ */
+function starHTML(r){ let s=''; for(let i=1;i<=5;i++) s+=`<span class="${i<=r?'on':'off'}" data-star="${i}">★</span>`; return s; }
+function againBadge(m){
+  if(m.rating>=4) return '<span class="badge-again yes">make again ✓</span>';
+  if(m.rating>0&&m.rating<=2) return '<span class="badge-again no">skip ✗</span>';
+  return '';
+}
+function fmtDate(d){ if(!d) return null; const dt=new Date(d+'T12:00'); return (dt.getMonth()+1)+'/'+dt.getDate(); }
+function renderMeals(){
+  const q=(document.getElementById('q').value||'').toLowerCase();
+  const sort=document.getElementById('sortBy').value;
+  const ftag=document.getElementById('filterTag').value;
+  let list=state.meals.filter(m=> (!typeFilter || m.mealType===typeFilter) && (!q || m.name.toLowerCase().includes(q) || (m.tags||[]).join(' ').toLowerCase().includes(q)) && (!ftag || (m.tags||[]).includes(ftag)) );
+  list.sort((a,b)=>{
+    if(sort==='rating') return (b.rating||0)-(a.rating||0) || (b.timesPlanned||0)-(a.timesPlanned||0);
+    if(sort==='times') return (b.timesPlanned||0)-(a.timesPlanned||0);
+    if(sort==='az') return a.name.localeCompare(b.name);
+    return (b.lastPlanned||'').localeCompare(a.lastPlanned||'');
+  });
+  const el=document.getElementById('mealList');
+  el.innerHTML = list.length? list.map(m=>{
+    const meta=[];
+    if(m.timesPlanned) meta.push('🔁 '+m.timesPlanned+'×');
+    if(m.lastPlanned) meta.push('last: '+fmtDate(m.lastPlanned));
+    return `<div class="card" data-id="${m.id}">
+      <div class="meal-head" onclick="toggleBody('${m.id}',event)">
+        <div>
+          <div class="meal-title">${esc(m.name)}</div>
+          <div class="meal-meta">${(m.tags||[]).map(t=>`<span class="tag${t==='side/sauce'?' side':''}">${esc(t)}</span>`).join('')} ${meta.map(x=>`<span>${x}</span>`).join('')} ${againBadge(m)}</div>
+        </div>
+        <div class="stars" onclick="rate('${m.id}',event)">${starHTML(m.rating||0)}</div>
+      </div>
+      <div class="meal-body" id="body-${m.id}">
+        ${(m.links&&m.links.length)?`<div class="linkrow">${m.links.map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label||linkLabel(l.url))} ↗</a>`).join('')}</div>`:''}
+        ${m.notes?`<div class="notes">📝 ${esc(m.notes)}</div>`:''}
+        ${m.recipe?`<div class="recipe">${esc(m.recipe)}</div>`:'<div class="notes">No recipe saved yet — paste one via Edit, or ask Claude to fetch it from the link.</div>'}
+        <div class="meal-actions">
+          <button class="btn sm ghost" onclick="addToWeek('${m.id}')">📅 Plan this week</button>
+          ${(m.groceryItems&&m.groceryItems.length)?`<button class="btn sm green" onclick="sendGroceries('${m.id}')">🛒 Add ${m.groceryItems.length} items</button>`:''}
+          <button class="btn sm gray" onclick="openMealForm('${m.id}')">✏️ Edit</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty">No meals match. Add one below!</div>';
+  // tag filter options
+  const tags=[...new Set(state.meals.flatMap(m=>m.tags||[]))].sort();
+  const sel=document.getElementById('filterTag'); const cur=sel.value;
+  sel.innerHTML='<option value="">All tags</option>'+tags.map(t=>`<option ${t===cur?'selected':''}>${esc(t)}</option>`).join('');
+  document.getElementById('subline').textContent = state.meals.length+' meals in your library';
+}
+function linkLabel(u){
+  if(u.includes('instagram'))return 'Instagram';
+  if(u.includes('tiktok'))return 'TikTok';
+  if(u.includes('facebook'))return 'Facebook';
+  try{ return new URL(u).hostname.replace('www.',''); }catch(e){ return 'Link'; }
+}
+function toggleBody(id,ev){
+  if(ev.target.closest('.stars'))return;
+  document.getElementById('body-'+id).classList.toggle('open');
+}
+function rate(id,ev){
+  ev.stopPropagation();
+  const n=ev.target.dataset.star; if(!n)return;
+  const m=state.meals.find(x=>x.id===id);
+  m.rating = (m.rating==n)?0:parseInt(n);
+  save(); renderMeals();
+}
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* meal form */
+let editingId=null;
+function openMealForm(id){
+  editingId=id||null;
+  const m=id? state.meals.find(x=>x.id===id):null;
+  document.getElementById('mealFormTitle').textContent=m?'Edit meal':'Add a meal';
+  document.getElementById('mfType').value=m?(m.mealType||'Dinner'):'Dinner';
+  document.getElementById('mfName').value=m?m.name:'';
+  document.getElementById('mfLinks').value=m?(m.links||[]).map(l=>l.url).join('\n'):'';
+  document.getElementById('mfTags').value=m?(m.tags||[]).join(', '):'';
+  document.getElementById('mfRecipe').value=m?(m.recipe||''):'';
+  document.getElementById('mfNotes').value=m?(m.notes||''):'';
+  document.getElementById('mfGrocery').value=m?(m.groceryItems||[]).map(g=>g.name+(g.section!=='Grocery'?' @'+g.section.toLowerCase():'')).join('\n'):'';
+  document.getElementById('mfDelete').style.display=m?'block':'none';
+  document.getElementById('mealFormOverlay').classList.add('open');
+}
+function closeMealForm(){ document.getElementById('mealFormOverlay').classList.remove('open'); }
+function parseGroceryLines(txt){
+  return txt.split('\n').map(s=>s.trim()).filter(Boolean).map(line=>{
+    let section='Grocery';
+    const ml=line.match(/@(produce|publix|bjs|costco|grocery|other)/i);
+    if(ml){ const k=ml[1].toLowerCase(); section = k==='produce'?'Produce':k==='publix'?'Publix':(k==='bjs'||k==='costco')?'BJs':k==='other'?'Other':'Grocery'; line=line.replace(ml[0],'').trim(); }
+    return {name:line, section};
+  });
+}
+function saveMealForm(){
+  const name=document.getElementById('mfName').value.trim();
+  if(!name){ toast('Give the meal a name'); return; }
+  const links=document.getElementById('mfLinks').value.split('\n').map(s=>s.trim()).filter(Boolean).map(u=>({url:u,label:linkLabel(u)}));
+  const tags=document.getElementById('mfTags').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const recipe=document.getElementById('mfRecipe').value.trim();
+  const notes=document.getElementById('mfNotes').value.trim();
+  const groceryItems=parseGroceryLines(document.getElementById('mfGrocery').value);
+  const mealType=document.getElementById('mfType').value;
+  if(editingId){
+    const m=state.meals.find(x=>x.id===editingId);
+    Object.assign(m,{name,links,tags,recipe,notes,groceryItems,mealType});
+  }else{
+    state.meals.push({id:uid(),name,links,tags,recipe,notes,groceryItems,mealType,rating:0,timesPlanned:0,lastPlanned:null});
+  }
+  save(); closeMealForm(); renderMeals(); toast('Saved ✓');
+}
+function deleteMeal(){
+  if(!confirm('Delete this meal from the library?'))return;
+  state.meals=state.meals.filter(x=>x.id!==editingId);
+  save(); closeMealForm(); renderMeals();
+}
+
+/* ============ WEEK ============ */
+let weekOffset=0;
+function weekStart(offset){
+  const now=new Date(); const d=new Date(now); const day=(d.getDay()+6)%7; // Monday start
+  d.setDate(d.getDate()-day+offset*7); d.setHours(12,0,0,0);
+  return d.toISOString().slice(0,10);
+}
+function weekKey(){ return weekStart(weekOffset); }
+function getWeek(){ const k=weekKey(); if(!state.weeks[k]) state.weeks[k]={meals:[]}; return state.weeks[k]; }
+function shiftWeek(n){ weekOffset+=n; renderWeek(); }
+function renderWeek(){
+  const k=weekKey(); const w=getWeek();
+  const end=new Date(k+'T12:00'); end.setDate(end.getDate()+6);
+  const lbl=(weekOffset===0?'This week · ':'')+(new Date(k+'T12:00').getMonth()+1)+'/'+new Date(k+'T12:00').getDate()+' – '+(end.getMonth()+1)+'/'+end.getDate();
+  document.getElementById('weekLabel').textContent=lbl;
+  const el=document.getElementById('planList');
+  el.innerHTML = w.meals.length ? w.meals.map((pm,i)=>{
+    const m=state.meals.find(x=>x.id===pm.mealId);
+    if(!m) return '';
+    return `<div class="card plan-item ${pm.cooked?'cooked':''}">
+      <button class="btn sm ${pm.cooked?'green':'gray'}" style="border-radius:50%;width:34px;height:34px;padding:0" onclick="toggleCooked(${i})">${pm.cooked?'✓':'○'}</button>
+      <div class="nm">${esc(m.name)} ${m.rating?`<span class="rt">${'★'.repeat(m.rating)}</span>`:''}</div>
+      ${(m.groceryItems&&m.groceryItems.length)?`<button class="btn sm ghost" onclick="sendGroceries('${m.id}')">🛒</button>`:''}
+      <button class="gitem-del del" onclick="removeFromWeek(${i})" style="border:none;background:none;color:#c9c1b5;font-size:16px;cursor:pointer">✕</button>
+    </div>`;
+  }).join('') : '<div class="empty">Nothing planned yet.<br>Add meals from your library 👇</div>';
+}
+function addToWeek(mealId){
+  weekOffset=0; getWeek().meals.push({mealId,cooked:false});
+  save(); toast('Added to this week 📅'); renderWeek();
+}
+function removeFromWeek(i){ getWeek().meals.splice(i,1); save(); renderWeek(); }
+function toggleCooked(i){
+  const w=getWeek(); const pm=w.meals[i]; pm.cooked=!pm.cooked;
+  const m=state.meals.find(x=>x.id===pm.mealId);
+  if(pm.cooked&&m){
+    m.timesPlanned=(m.timesPlanned||0)+1; m.lastPlanned=new Date().toISOString().slice(0,10);
+    save(); renderWeek();
+    setTimeout(()=>{
+      const r=prompt('How was "'+m.name+'"? Rate 1–5 (or leave blank):');
+      if(r&&r>=1&&r<=5){ m.rating=parseInt(r); save(); toast('Rated '+'★'.repeat(m.rating)); }
+    },250);
+  }else{ if(m&&!pm.cooked){ m.timesPlanned=Math.max(0,(m.timesPlanned||0)-1); } save(); renderWeek(); }
+}
+/* picker */
+function openPicker(){ document.getElementById('pickerQ').value=''; renderPicker(); document.getElementById('pickerOverlay').classList.add('open'); }
+function closePicker(){ document.getElementById('pickerOverlay').classList.remove('open'); }
+function renderPicker(){
+  const q=(document.getElementById('pickerQ').value||'').toLowerCase();
+  const list=state.meals.filter(m=>!q||m.name.toLowerCase().includes(q))
+    .sort((a,b)=>(b.rating||0)-(a.rating||0)||(b.timesPlanned||0)-(a.timesPlanned||0));
+  document.getElementById('pickerList').innerHTML=list.map(m=>`
+    <div class="picker-item">
+      <div><div class="pi-n">${esc(m.name)}</div>
+      <div class="pi-m">${m.rating?'★'.repeat(m.rating)+' · ':''}${m.timesPlanned?m.timesPlanned+'× made':'never made'}</div></div>
+      <button class="btn sm" onclick="addToWeek('${m.id}');closePicker()">Add</button>
+    </div>`).join('');
+}
+
+/* ============ SUGGESTIONS ============ */
+function daysSince(d){ if(!d) return 999; return Math.floor((Date.now()-new Date(d+'T12:00'))/(864e5)); }
+function shuffleArr(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
+function renderIdeas(){
+  // library picks: dinners, not planned this week, score by rating + time away
+  const plannedNow=new Set((state.weeks[weekStart(0)]||{meals:[]}).meals.map(p=>p.mealId));
+  const cands=state.meals.filter(m=>m.mealType==='Dinner'&&!plannedNow.has(m.id)&&(m.rating||0)<=5&&!(m.rating>0&&m.rating<=2));
+  const scored=cands.map(m=>{
+    const away=Math.min(daysSince(m.lastPlanned),90);
+    const score=(m.rating||2.5)*10 + away*0.6 + (m.timesPlanned||0)*2 + Math.random()*12;
+    let why=[];
+    if(m.rating>=4) why.push('★'.repeat(m.rating)+' rated');
+    if(m.timesPlanned>=3) why.push('a house favorite ('+m.timesPlanned+'×)');
+    const d=daysSince(m.lastPlanned);
+    if(d>=21&&d<900) why.push("it's been "+(d>=60?Math.round(d/30)+' months':Math.round(d/7)+' weeks'));
+    if(!m.lastPlanned) why.push('never made yet');
+    return {m,score,why:why.join(' · ')||'switch it up'};
+  }).sort((a,b)=>b.score-a.score).slice(0,4);
+  document.getElementById('libPicks').innerHTML=scored.map(({m,why})=>`
+    <div class="card">
+      <div class="meal-title">${esc(m.name)}</div>
+      <div class="sug-why">↺ ${esc(why)}</div>
+      <div class="meal-actions">
+        <button class="btn sm" onclick="addToWeek('${m.id}')">📅 Plan it</button>
+        ${(m.groceryItems&&m.groceryItems.length)?`<button class="btn sm green" onclick="sendGroceries('${m.id}')">🛒 Groceries</button>`:''}
+      </div>
+    </div>`).join('');
+  // new ideas: exclude ones already added to library
+  const have=new Set(state.meals.map(m=>m.name.toLowerCase()));
+  const fresh=shuffleArr(IDEA_POOL.filter(i=>!have.has(i.name.toLowerCase()))).slice(0,4);
+  document.getElementById('newIdeas').innerHTML=fresh.length?fresh.map((i,idx)=>`
+    <div class="card">
+      <div class="meal-title">${esc(i.name)}</div>
+      <div class="sug-why">✨ ${esc(i.why)}</div>
+      <div class="sug-desc">${esc(i.desc)}</div>
+      ${i.link?`<div class="linkrow" style="margin-top:6px"><a href="${esc(i.link)}" target="_blank" rel="noopener">${linkLabel(i.link)} ↗</a></div>`:''}
+      <div class="meal-actions"><button class="btn sm ghost" onclick="adoptIdea('${esc(i.name).replace(/'/g,"\\'")}')">＋ Add to library</button></div>
+    </div>`).join(''):'<div class="empty">You\'ve added all the current ideas — ask Claude for a fresh batch!</div>';
+}
+function adoptIdea(name){
+  const i=IDEA_POOL.find(x=>x.name===name); if(!i)return;
+  state.meals.push({id:uid(),name:i.name,mealType:i.tags.includes('lunch')?'Lunch':'Dinner',links:i.link?[{url:i.link,label:linkLabel(i.link)}]:[],tags:i.tags.filter(t=>t!=='lunch'),recipe:'',notes:i.desc,groceryItems:[],rating:0,timesPlanned:0,lastPlanned:null});
+  save(); toast('Added to your library ✓'); renderIdeas();
+}
+
+/* ============ GROCERY ============ */
+const SECTIONS=['Produce','Grocery','Publix','BJs','Other'];
+const SECTION_LABELS={Produce:'🥬 Produce',Grocery:'🛒 Grocery (Aldi)',Publix:'🟢 Publix',BJs:'📦 Costco / BJs / Sam’s',Other:'✨ Other'};
+function parseQty(name){
+  // "Bell Peppers x2" / "2x Zucchini" / "Avocados (x4)" → {name, qty}
+  let qty=1, n=name;
+  let m=n.match(/\s*[\(]?x\s*(\d+)[\)]?\s*$/i); if(m){ qty=parseInt(m[1]); n=n.slice(0,m.index).trim(); }
+  else { m=n.match(/^(\d+)\s*x\s+/i); if(m){ qty=parseInt(m[1]); n=n.slice(m[0].length).trim(); } }
+  return {name:n, qty:Math.max(1,qty)};
+}
+function pushGrocery(rawName, section, from){
+  const {name,qty}=parseQty(rawName);
+  const dup=state.grocery.find(x=>!x.checked&&x.name.toLowerCase()===name.toLowerCase());
+  if(dup){ dup.qty=(dup.qty||1)+qty; if(from&&dup.from&&!dup.from.includes(from)) dup.from+=' + '+from; return 'merged'; }
+  state.grocery.push({id:uid(),name,qty,section,checked:false,from:from||null});
+  return 'added';
+}
+function addGrocery(){
+  const inp=document.getElementById('gInput'); const name=inp.value.trim();
+  if(!name)return;
+  pushGrocery(name, document.getElementById('gSection').value, null);
+  inp.value=''; save(); renderGrocery();
+}
+function quickAdd(name,section){ pushGrocery(name,section,null); save(); renderGrocery(); toast(name+' added ✓'); }
+function sendGroceries(mealId){
+  const m=state.meals.find(x=>x.id===mealId);
+  let added=0, merged=0;
+  (m.groceryItems||[]).forEach(g=>{
+    const r=pushGrocery(g.name, g.section||'Grocery', m.name);
+    if(r==='added')added++; else merged++;
+  });
+  save(); toast((added?added+' added':'')+(added&&merged?', ':'')+(merged?merged+' bumped ×qty':'')+' 🛒');
+  if(document.getElementById('view-grocery').classList.contains('active'))renderGrocery();
+}
+function editQty(id){
+  const g=state.grocery.find(x=>x.id===id);
+  const v=prompt('Quantity for "'+g.name+'":', g.qty||1);
+  if(v===null)return;
+  const n=parseInt(v); g.qty=(isNaN(n)||n<1)?1:n; save(); renderGrocery();
+}
+const QUICK_ITEMS=[["Oreos","Publix"],["Eggs","BJs"],["Milk","Grocery"],["Half and Half","Grocery"],["Butter","Grocery"],["Greek Yogurt","Grocery"],["Sourdough","Grocery"],["Cafe Bustelo","Publix"],["Toilet Paper","BJs"],["Paper Towels","BJs"],["Fruit Snacks","Grocery"],["Garlic","Produce"]];
+function renderChips(){
+  document.getElementById('quickChips').innerHTML=QUICK_ITEMS.map(([n,s])=>`<button onclick="quickAdd('${n}','${s}')">＋ ${n}</button>`).join('');
+}
+function renderGrocery(){
+  const el=document.getElementById('groceryList');
+  const bySec={};
+  SECTIONS.forEach(s=>bySec[s]=[]);
+  state.grocery.forEach(g=>{ (bySec[g.section]||bySec.Other).push(g); });
+  let html='';
+  SECTIONS.forEach(s=>{
+    const items=bySec[s]; if(!items.length)return;
+    html+=`<div class="gsec"><h3><span>${SECTION_LABELS[s]}</span><span>${items.filter(i=>i.checked).length}/${items.length}</span></h3>`+
+      items.map(g=>`<div class="gitem ${g.checked?'done':''}">
+        <input type="checkbox" ${g.checked?'checked':''} onchange="toggleG('${g.id}')">
+        <span class="gname">${esc(g.name)}</span>
+        <span class="qty" onclick="editQty('${g.id}')" title="Tap to edit quantity">×${g.qty||1}</span>
+        ${g.from?`<span class="src">${esc(g.from)}</span>`:''}
+        <button class="del" onclick="delG('${g.id}')">✕</button>
+      </div>`).join('')+'</div>';
+  });
+  el.innerHTML=html||'<div class="empty">List is empty.<br>Add items above, or send a meal’s ingredients from the Meals tab 🛒</div>';
+}
+function toggleG(id){ const g=state.grocery.find(x=>x.id===id); g.checked=!g.checked; save(); renderGrocery(); }
+function delG(id){ state.grocery=state.grocery.filter(x=>x.id!==id); save(); renderGrocery(); }
+function clearChecked(){ state.grocery=state.grocery.filter(x=>!x.checked); save(); renderGrocery(); }
+function clearAll(){ state.grocery=[]; save(); renderGrocery(); }
+function copyList(){
+  const bySec={}; SECTIONS.forEach(s=>bySec[s]=[]);
+  state.grocery.forEach(g=>{ (bySec[g.section]||bySec.Other).push(g); });
+  let out='';
+  SECTIONS.forEach(s=>{ const items=bySec[s].filter(g=>!g.checked); if(!items.length)return;
+    out+=(s==='Grocery'?'Grocery':s==='BJs'?'Costco/BJs':s)+'\n'+items.map(g=>'- [ ] '+g.name+((g.qty||1)>1?' x'+g.qty:'')).join('\n')+'\n\n'; });
+  navigator.clipboard.writeText(out.trim()).then(()=>toast('Copied as checklist ✓'))
+    .catch(()=>{ prompt('Copy this list:',out.trim()); });
+}
+
+/* ============ EXPORT / IMPORT ============ */
+function exportData(){
+  const blob=new Blob([JSON.stringify(state,null,1)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='dolce-dinners-backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+  toast('Backup downloaded — save it to a shared folder ✓');
+}
+function importData(ev){
+  const f=ev.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{ try{
+      const data=JSON.parse(r.result);
+      if(!data.meals) throw 0;
+      state=data; save(); renderMeals(); renderWeek(); renderGrocery(); toast('Imported ✓');
+    }catch(e){ toast('That file didn’t look right'); } };
+  r.readAsText(f); ev.target.value='';
+}
+
+/* ============ LIVE SYNC (Firebase, optional) ============ */
+const SYNC_KEY='dolceDinners.sync';
+const DEV_ID=(function(){ let d=localStorage.getItem('dolceDinners.dev'); if(!d){d=uid();localStorage.setItem('dolceDinners.dev',d);} return d; })();
+let syncCfg=null, fdb=null, fref=null, lastRemoteTs=0, pushTimer=null, applyingRemote=false;
+
+function setSyncDot(s){ // s: off|connecting|on|error
+  const b=document.getElementById('syncBtn');
+  b.textContent = s==='on'?'🟢 Sync':s==='connecting'?'🟡 Sync':s==='error'?'🔴 Sync':'⚪️ Sync';
+}
+function loadSyncCfg(){ try{ syncCfg=JSON.parse(localStorage.getItem(SYNC_KEY)); }catch(e){ syncCfg=null; } }
+function parseCfgText(t){
+  t=t.trim();
+  const a=t.indexOf('{'), b=t.lastIndexOf('}');
+  if(a<0||b<0) throw 'no braces';
+  let obj=t.slice(a,b+1);
+  // tolerate JS object syntax (unquoted keys, single quotes, trailing commas)
+  obj=obj.replace(/'/g,'"').replace(/([{,]\s*)([A-Za-z_$][\w$]*)\s*:/g,'$1"$2":').replace(/,\s*}/g,'}');
+  return JSON.parse(obj);
+}
+function loadFirebaseSdk(cb){
+  if(window.firebase&&window.firebase.database){ cb(); return; }
+  let n=0; const done=()=>{ if(++n===2) cb(); };
+  ['firebase-app-compat.js','firebase-database-compat.js'].forEach(f=>{
+    const s=document.createElement('script');
+    s.src='https://www.gstatic.com/firebasejs/10.12.2/'+f;
+    s.onload=done; s.onerror=()=>setSyncDot('error');
+    document.head.appendChild(s);
+  });
+}
+function initSync(){
+  loadSyncCfg();
+  if(!syncCfg||!syncCfg.config||!syncCfg.code){ setSyncDot('off'); return; }
+  setSyncDot('connecting');
+  loadFirebaseSdk(()=>{
+    try{
+      if(!firebase.apps.length) firebase.initializeApp(syncCfg.config);
+      fdb=firebase.database();
+      fref=fdb.ref('households/'+syncCfg.code);
+      fref.on('value',snap=>{
+        const v=snap.val();
+        setSyncDot('on');
+        if(!v||!v.state) { schedulePush(); return; }
+        if(v.dev===DEV_ID) { lastRemoteTs=v.ts; return; }
+        if(v.ts>lastRemoteTs){
+          lastRemoteTs=v.ts;
+          applyingRemote=true;
+          state=v.state; normalizeTypes();
+          localStorage.setItem(LS_KEY, JSON.stringify(state));
+          applyingRemote=false;
+          renderMeals(); renderWeek(); renderGrocery();
+          if(document.getElementById('view-ideas').classList.contains('active'))renderIdeas();
+        }
+      },err=>{ setSyncDot('error'); console.warn('sync read error',err); });
+      fdb.ref('.info/connected').on('value',s=>{ setSyncDot(s.val()?'on':'connecting'); });
+    }catch(e){ setSyncDot('error'); console.warn(e); }
+  });
+}
+function schedulePush(){
+  if(!fref||applyingRemote) return;
+  clearTimeout(pushTimer);
+  pushTimer=setTimeout(()=>{
+    const ts=Date.now(); lastRemoteTs=ts;
+    fref.set({state, ts, dev:DEV_ID}).catch(e=>{ setSyncDot('error'); console.warn('sync write error',e); });
+  },400);
+}
+function openSyncSheet(){
+  loadSyncCfg();
+  document.getElementById('syCfg').value=syncCfg&&syncCfg.config?JSON.stringify(syncCfg.config):'';
+  document.getElementById('syCode').value=syncCfg&&syncCfg.code?syncCfg.code:'';
+  document.getElementById('syncExtra').style.display=(syncCfg&&syncCfg.config)?'block':'none';
+  document.getElementById('syncOverlay').classList.add('open');
+}
+function closeSyncSheet(){ document.getElementById('syncOverlay').classList.remove('open'); }
+function genCode(){ document.getElementById('syCode').value='dolce-'+Math.random().toString(36).slice(2,8)+Math.random().toString(36).slice(2,6); }
+function saveSyncSettings(){
+  let cfg;
+  try{ cfg=parseCfgText(document.getElementById('syCfg').value); }
+  catch(e){ toast('Couldn\'t read that config — paste the whole {…} block'); return; }
+  if(!cfg.databaseURL){
+    if(cfg.projectId) cfg.databaseURL='https://'+cfg.projectId+'-default-rtdb.firebaseio.com';
+    else { toast('Config needs a databaseURL or projectId'); return; }
+  }
+  const code=(document.getElementById('syCode').value.trim()||'').replace(/[^\w-]/g,'');
+  if(!code){ toast('Set a household code (tap Generate)'); return; }
+  syncCfg={config:cfg, code};
+  localStorage.setItem(SYNC_KEY, JSON.stringify(syncCfg));
+  closeSyncSheet(); initSync(); toast('Connecting…');
+}
+function disconnectSync(){
+  if(!confirm('Stop syncing on this device? (Data stays on the phone and in the cloud.)'))return;
+  if(fref)fref.off(); fref=null;
+  localStorage.removeItem(SYNC_KEY); syncCfg=null; setSyncDot('off'); closeSyncSheet();
+}
+function copyInvite(){
+  const payload=btoa(unescape(encodeURIComponent(JSON.stringify(syncCfg))));
+  const url=location.origin+location.pathname+'#join='+payload;
+  navigator.clipboard.writeText(url).then(()=>toast('Invite link copied — text it to her 💌'))
+    .catch(()=>prompt('Copy this link:',url));
+}
+function checkInvite(){
+  if(location.hash.startsWith('#join=')){
+    try{
+      const cfg=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(6)))));
+      if(cfg.config&&cfg.code){
+        localStorage.setItem(SYNC_KEY, JSON.stringify(cfg));
+        history.replaceState(null,'',location.pathname);
+        toast('Joined the household — syncing ✓');
+      }
+    }catch(e){ console.warn('bad invite link'); }
+  }
+}
+
+/* ============ INIT ============ */
+load(); renderChips(); renderMeals(); renderWeek(); renderGrocery();
+checkInvite(); initSync();
+</script>
+</body>
+</html>
