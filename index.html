@@ -13,13 +13,23 @@
   --radius:14px; --shadow:0 1px 4px rgba(60,50,40,.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:90px}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:104px}
+.note-card .nc-txt{font-size:14.5px;line-height:1.45;white-space:pre-wrap}
+.note-card .nc-meta{font-size:11.5px;color:var(--muted);margin-top:6px}
+.note-card .nc-acts{display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap}
+.rxn{border:1px solid var(--line);background:#fbf8f3;border-radius:16px;padding:3px 10px;font-size:13px;cursor:pointer}
+.rxn.mine{background:var(--accent-soft);border-color:var(--accent)}
+.reply{background:#fbf8f3;border-left:3px solid var(--line);border-radius:0 8px 8px 0;padding:7px 10px;margin-top:8px;font-size:13px}
+.reply .r-by{font-weight:700;font-size:11px;color:var(--muted)}
+.notes-add{display:flex;gap:6px;margin:10px 0}
+.notes-add textarea{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-size:15px;font-family:inherit;resize:none;min-height:44px;background:var(--card)}
 header{padding:18px 16px 8px;text-align:center}
 header h1{font-size:22px;letter-spacing:-.3px}
 header .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
 .tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);z-index:50;padding-bottom:env(safe-area-inset-bottom)}
-.tabs button{flex:1;padding:12px 4px 10px;border:none;background:none;font-size:11px;color:var(--muted);cursor:pointer;font-weight:600}
-.tabs button .ico{display:block;font-size:20px;margin-bottom:2px}
+.tabs button{flex:1;padding:14px 2px 12px;border:none;background:none;font-size:13px;color:var(--muted);cursor:pointer;font-weight:700}
+.tabs button .ico{display:block;font-size:26px;margin-bottom:3px}
+.tabs button.active .ico{transform:scale(1.12)}
 .tabs button.active{color:var(--accent)}
 main{max-width:640px;margin:0 auto;padding:8px 14px}
 .view{display:none}.view.active{display:block}
@@ -114,6 +124,7 @@ h2.blk{font-size:15px;margin:16px 2px 8px;display:flex;justify-content:space-bet
 <main>
   <!-- MEALS -->
   <section id="view-meals" class="view active">
+    <button class="btn" style="width:100%;margin-top:8px" onclick="openMealForm()">＋ Add a meal</button>
     <div class="seg" id="typeSeg">
       <button class="on" data-type="" onclick="setTypeFilter(this)">All</button>
       <button data-type="Breakfast" onclick="setTypeFilter(this)">🍳 Breakfast</button>
@@ -132,7 +143,6 @@ h2.blk{font-size:15px;margin:16px 2px 8px;display:flex;justify-content:space-bet
       <select id="filterTag" onchange="renderMeals()"><option value="">All tags</option></select>
     </div>
     <div id="mealList"></div>
-    <button class="btn" style="width:100%;margin-top:6px" onclick="openMealForm()">＋ Add a meal</button>
     <p class="hint">💡 Tap a meal to see links &amp; recipe. Tap the stars to rate it — 4★+ shows “make again”, 2★ or less shows “skip”. Paste recipe text from Instagram/TikTok captions into the recipe box (or ask Claude to fetch it for you).</p>
   </section>
 
@@ -155,6 +165,16 @@ h2.blk{font-size:15px;margin:16px 2px 8px;display:flex;justify-content:space-bet
     <h2 class="blk">✨ New ideas that match your vibe</h2>
     <div id="newIdeas"></div>
     <p class="hint">Library picks favor meals you rated highly but haven't made in a while. New ideas are based on what you two actually cook — bowls, Blackstone nights, air-fryer chicken, and island flavors. Ask Claude to find &amp; fetch a full recipe for any of them.</p>
+  </section>
+
+  <!-- NOTES -->
+  <section id="view-notes" class="view">
+    <div class="notes-add">
+      <textarea id="noteInput" placeholder="Should we do this? How about…?" rows="1"></textarea>
+      <button class="btn" onclick="postNote()">Post</button>
+    </div>
+    <div id="notesList"></div>
+    <p class="hint">💬 A shared board for you two — drop questions, recipe links, cravings. React with 👍 ❤️ 🤔 or tap Reply. Posts sync to both phones. Your name for posts: <a href="#" onclick="setMyName();return false" id="myNameLbl"></a></p>
   </section>
 
   <!-- GROCERY -->
@@ -181,8 +201,9 @@ h2.blk{font-size:15px;margin:16px 2px 8px;display:flex;justify-content:space-bet
 <nav class="tabs">
   <button id="tab-meals" class="active" onclick="showView('meals')"><span class="ico">📖</span>Meals</button>
   <button id="tab-ideas" onclick="showView('ideas')"><span class="ico">💡</span>Ideas</button>
-  <button id="tab-week" onclick="showView('week')"><span class="ico">📅</span>This Week</button>
+  <button id="tab-week" onclick="showView('week')"><span class="ico">📅</span>Week</button>
   <button id="tab-grocery" onclick="showView('grocery')"><span class="ico">🛒</span>Grocery</button>
+  <button id="tab-notes" onclick="showView('notes')"><span class="ico">💬</span>Notes</button>
 </nav>
 
 <!-- meal form -->
@@ -335,6 +356,7 @@ function normalizeTypes(){
     }
   });
   state.grocery.forEach(g=>{ if(!g.qty) g.qty=1; });
+  if(!state.notes) state.notes=[];
 }
 function load(){
   try{ state=JSON.parse(localStorage.getItem(LS_KEY)); }catch(e){ state=null; }
@@ -355,7 +377,7 @@ function showView(v){
   document.querySelectorAll('.tabs button').forEach(e=>e.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.getElementById('tab-'+v).classList.add('active');
-  if(v==='meals')renderMeals(); if(v==='week')renderWeek(); if(v==='grocery')renderGrocery(); if(v==='ideas')renderIdeas();
+  if(v==='meals')renderMeals(); if(v==='week')renderWeek(); if(v==='grocery')renderGrocery(); if(v==='ideas')renderIdeas(); if(v==='notes')renderNotes();
 }
 /* type filter */
 let typeFilter='';
@@ -663,6 +685,65 @@ function copyList(){
     .catch(()=>{ prompt('Copy this list:',out.trim()); });
 }
 
+/* ============ NOTES BOARD ============ */
+const NAME_KEY='dolceDinners.name';
+function myName(){ return localStorage.getItem(NAME_KEY)||''; }
+function setMyName(){
+  const n=prompt('Your name for posts:', myName()||'');
+  if(n&&n.trim()){ localStorage.setItem(NAME_KEY,n.trim()); renderNotes(); }
+  return myName();
+}
+function ensureName(){ return myName()||setMyName(); }
+const RXNS=['👍','❤️','🤔'];
+function fmtWhen(ts){
+  const d=new Date(ts), now=new Date();
+  const time=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+  if(d.toDateString()===now.toDateString()) return time;
+  return (d.getMonth()+1)+'/'+d.getDate()+' '+time;
+}
+function postNote(){
+  const inp=document.getElementById('noteInput'); const text=inp.value.trim();
+  if(!text)return;
+  const by=ensureName(); if(!by)return;
+  state.notes.unshift({id:uid(),text,by,ts:Date.now(),reactions:{},replies:[]});
+  inp.value=''; save(); renderNotes();
+}
+function reactNote(id,emoji){
+  const n=state.notes.find(x=>x.id===id); if(!n)return;
+  const by=ensureName(); if(!by)return;
+  n.reactions=n.reactions||{};
+  const list=n.reactions[emoji]||[];
+  n.reactions[emoji]=list.includes(by)?list.filter(x=>x!==by):list.concat(by);
+  if(!n.reactions[emoji].length)delete n.reactions[emoji];
+  save(); renderNotes();
+}
+function replyNote(id){
+  const n=state.notes.find(x=>x.id===id); if(!n)return;
+  const by=ensureName(); if(!by)return;
+  const text=prompt('Reply to '+n.by+':'); if(!text||!text.trim())return;
+  n.replies=n.replies||[]; n.replies.push({by,text:text.trim(),ts:Date.now()});
+  save(); renderNotes();
+}
+function delNote(id){
+  if(!confirm('Delete this note?'))return;
+  state.notes=state.notes.filter(x=>x.id!==id); save(); renderNotes();
+}
+function renderNotes(){
+  document.getElementById('myNameLbl').textContent=myName()||'tap to set';
+  const el=document.getElementById('notesList');
+  el.innerHTML=state.notes.length?state.notes.map(n=>`
+    <div class="card note-card">
+      <div class="nc-txt">${esc(n.text)}</div>
+      <div class="nc-meta">${esc(n.by)} · ${fmtWhen(n.ts)}</div>
+      ${(n.replies||[]).map(r=>`<div class="reply"><span class="r-by">${esc(r.by)} · ${fmtWhen(r.ts)}</span><br>${esc(r.text)}</div>`).join('')}
+      <div class="nc-acts">
+        ${RXNS.map(e=>{const who=(n.reactions&&n.reactions[e])||[];return `<button class="rxn ${who.includes(myName())?'mine':''}" onclick="reactNote('${n.id}','${e}')" title="${esc(who.join(', '))}">${e}${who.length?' '+who.length:''}</button>`;}).join('')}
+        <button class="btn sm ghost" onclick="replyNote('${n.id}')">↩︎ Reply</button>
+        <button class="del" style="border:none;background:none;color:#c9c1b5;font-size:15px;cursor:pointer;margin-left:auto" onclick="delNote('${n.id}')">✕</button>
+      </div>
+    </div>`).join(''):'<div class="empty">Nothing here yet.<br>Ask each other something — "should we do tacos this week?" 💬</div>';
+}
+
 /* ============ EXPORT / IMPORT ============ */
 function exportData(){
   const blob=new Blob([JSON.stringify(state,null,1)],{type:'application/json'});
@@ -732,6 +813,7 @@ function initSync(){
           applyingRemote=false;
           renderMeals(); renderWeek(); renderGrocery();
           if(document.getElementById('view-ideas').classList.contains('active'))renderIdeas();
+          if(document.getElementById('view-notes').classList.contains('active'))renderNotes();
         }
       },err=>{ setSyncDot('error'); console.warn('sync read error',err); });
       fdb.ref('.info/connected').on('value',s=>{ setSyncDot(s.val()?'on':'connecting'); });
