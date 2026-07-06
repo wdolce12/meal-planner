@@ -136,6 +136,7 @@ h2.blk{font-size:15px;margin:16px 2px 8px;display:flex;justify-content:space-bet
       <input type="search" id="q" placeholder="Search meals…" oninput="renderMeals()">
       <select id="sortBy" onchange="renderMeals()">
         <option value="recent">Recently planned</option>
+        <option value="added">Date added</option>
         <option value="rating">Top rated</option>
         <option value="times">Most made</option>
         <option value="az">A–Z</option>
@@ -426,6 +427,7 @@ function renderMeals(){
     if(sort==='rating') return (b.rating||0)-(a.rating||0) || (b.timesPlanned||0)-(a.timesPlanned||0);
     if(sort==='times') return (b.timesPlanned||0)-(a.timesPlanned||0);
     if(sort==='az') return a.name.localeCompare(b.name);
+    if(sort==='added') return (b.createdAt||0)-(a.createdAt||0) || a.name.localeCompare(b.name);
     return (b.lastPlanned||'').localeCompare(a.lastPlanned||'');
   });
   const el=document.getElementById('mealList');
@@ -433,6 +435,7 @@ function renderMeals(){
     const meta=[];
     if(m.timesPlanned) meta.push('🔁 '+m.timesPlanned+'×');
     if(m.lastPlanned) meta.push('last: '+fmtDate(m.lastPlanned));
+    if(m.createdAt) meta.push('added: '+((d)=>((d.getMonth()+1)+'/'+d.getDate()))(new Date(m.createdAt)));
     return `<div class="card" data-id="${m.id}">
       <div class="meal-head" onclick="toggleBody('${m.id}',event)">
         <div>
@@ -516,7 +519,7 @@ function saveMealForm(){
     const m=state.meals.find(x=>x.id===editingId);
     Object.assign(m,{name,links,tags,recipe,notes,groceryItems,mealType});
   }else{
-    state.meals.push({id:uid(),name,links,tags,recipe,notes,groceryItems,mealType,rating:0,timesPlanned:0,lastPlanned:null});
+    state.meals.push({id:uid(),name,links,tags,recipe,notes,groceryItems,mealType,rating:0,timesPlanned:0,lastPlanned:null,createdAt:Date.now()});
   }
   save(); closeMealForm(); renderMeals(); toast('Saved ✓');
 }
@@ -626,7 +629,7 @@ function renderIdeas(){
 }
 function adoptIdea(name){
   const i=IDEA_POOL.find(x=>x.name===name); if(!i)return;
-  state.meals.push({id:uid(),name:i.name,mealType:i.tags.includes('lunch')?'Lunch':'Dinner',links:i.link?[{url:i.link,label:linkLabel(i.link)}]:[],tags:i.tags.filter(t=>t!=='lunch'),recipe:'',notes:i.desc,groceryItems:[],rating:0,timesPlanned:0,lastPlanned:null});
+  state.meals.push({id:uid(),name:i.name,mealType:i.tags.includes('lunch')?'Lunch':'Dinner',links:i.link?[{url:i.link,label:linkLabel(i.link)}]:[],tags:i.tags.filter(t=>t!=='lunch'),recipe:'',notes:i.desc,groceryItems:[],rating:0,timesPlanned:0,lastPlanned:null,createdAt:Date.now()});
   save(); toast('Added to your library ✓'); renderIdeas();
 }
 
